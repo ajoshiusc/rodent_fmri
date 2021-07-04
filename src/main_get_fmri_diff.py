@@ -4,12 +4,13 @@ from logging import error
 import os
 import sys
 sys.path.append('/ImagePTE1/ajoshi/code_farm/bfp/src/BrainSync')
-from brainsync import normalizeData, brainSync
+from brainsync import normalizeData, brainSync, groupBrainSync
 from tqdm import tqdm
 from glob import glob
 import nilearn.image as ni
 import numpy as np
-
+from nilearn import plotting
+import matplotlib.pyplot as plt
 
 
 #from surfproc import patch_color_attrib, smooth_surf_function
@@ -87,21 +88,43 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
         fmri_tdiff_all[:, i] = np.linalg.norm(
             fmri_roiwise_7d_all[:, :, i] - d, axis=0)
 
-    return fmri_tdiff_all
+    return fmri_tdiff_all, fmri_roiwise_7d_all, fmri_roiwise_28d_all
+
+
+def plot_atlas_pval(atlas_fname, roi_ids, pval, out_fname, alpha = 0.05):
+
+    atlas = ni.load_img(atlas_fname)
+    atlas_img = atlas.get_fdata()
+
+    img = np.ones(atlas.shape)
+
+    for i, roi in enumerate(roi_ids):
+        img[atlas_img == roi] = pval[i]
+
+    pval_vol = ni.new_img_like(atlas, img)
+
+    pval_vol.to_filename(out_fname)
+
+    img[img>alpha] = 0
+    pval_vol = ni.new_img_like(atlas, alpha - img)
+
+    plotting.plot_stat_map(bg_img=atlas, stat_map_img=pval_vol, threshold=0.0)
+    plt.show()
 
 
 if __name__ == "__main__":
 
     dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
-
-    fmri_tdiff_shm_all = get_fmri_diff_tpts(dir_7d, dir_28d)
+    atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
+##
+    fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(dir_7d, dir_28d)
     np.savez('shm.npz', fmri_tdiff_inj_all=fmri_tdiff_shm_all)
 
     dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
 
-    fmri_tdiff_inj_all = get_fmri_diff_tpts(dir_7d, dir_28d)
+    fmri_tdiff_inj_all, fmri_inj_7d_all, fmri_inj_28d_all = get_fmri_diff_tpts(dir_7d, dir_28d)
     np.savez('inj.npz', fmri_tdiff_inj_all=fmri_tdiff_inj_all)
 
     num_rois = fmri_tdiff_inj_all.shape[0]
@@ -119,4 +142,22 @@ if __name__ == "__main__":
 
     np.savez('pval.npz', pval2=pval2, pval=pval, pval_opp=pval_opp)
     print(np.stack((pval, pval2, pval_opp)).T)
+##
+    plot_atlas_pval(atlas_fname, np.arange(1,num_rois+1), pval, out_fname='pval_7d_28d.nii.gz', alpha=0.25)
+    plot_atlas_pval(atlas_fname, np.arange(1,num_rois+1), pval2, out_fname='pval2_7d_28d.nii.gz', alpha=0.25)
+    plot_atlas_pval(atlas_fname, np.arange(1,num_rois+1), pval_opp, out_fname='pval_opp_7d_28d.nii.gz', alpha=0.25)
+
+ 
+    groupBrainSync(fmri_shm_7d_all)
+    """ 
+    groupbrainsync of 7d sham
+
+
+    diff2atlas sham dir_7d
+    diff2atlas inj dir_7d
+    diff2atlas inj dir_28d
+    """
     input('press any key')
+
+
+
