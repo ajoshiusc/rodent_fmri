@@ -1,15 +1,16 @@
+from scipy.stats import ranksums, ttest_ind
+from scipy import io as spio
+from logging import error
+import os
+import sys
+sys.path.append('/ImagePTE1/ajoshi/code_farm/bfp/src/BrainSync')
+from brainsync import normalizeData, brainSync
 from tqdm import tqdm
 from glob import glob
 import nilearn.image as ni
 import numpy as np
-import os
-import sys
 
-sys.path.append('/ImagePTE1/ajoshi/code_farm/bfp/src/BrainSync')
 
-from brainsync import normalizeData, brainSync
-from logging import error
-from scipy import io as spio
 
 #from surfproc import patch_color_attrib, smooth_surf_function
 
@@ -47,7 +48,7 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
     sublist = list()
     for f in flist:
         pth, fname = os.path.split(f)
-        sublist.append(fname[6:-7]) # 26
+        sublist.append(fname[6:-7])  # 26
 
     fmri_roiwise_7d_all = np.zeros([num_time, num_rois, num_sub])
     fmri_roiwise_28d_all = np.zeros([num_time, num_rois, num_sub])
@@ -58,8 +59,8 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
         # Add extension for 7d
         sub_7d = sub
 
-        sub_28d = sub_7d.replace('7d_rsfmri','28d_rsfmri')
-        sub_28d = sub_28d.replace('std_07','std_28')
+        sub_28d = sub_7d.replace('7d_rsfmri', '28d_rsfmri')
+        sub_28d = sub_28d.replace('std_07', 'std_28')
 
         f = glob(dir_28d + '/' + sub[:2] + '*.nii.gz')
         d, s = os.path.split(f[0])
@@ -91,18 +92,31 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
 
 if __name__ == "__main__":
 
-
     dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
 
-    fmri_tdiff_shm_all = get_fmri_diff_tpts(dir_7d,dir_28d)
+    fmri_tdiff_shm_all = get_fmri_diff_tpts(dir_7d, dir_28d)
     np.savez('shm.npz', fmri_tdiff_inj_all=fmri_tdiff_shm_all)
-
 
     dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
 
-    fmri_tdiff_inj_all = get_fmri_diff_tpts(dir_7d,dir_28d)
+    fmri_tdiff_inj_all = get_fmri_diff_tpts(dir_7d, dir_28d)
     np.savez('inj.npz', fmri_tdiff_inj_all=fmri_tdiff_inj_all)
 
+    num_rois = fmri_tdiff_inj_all.shape[0]
+    pval2 = np.zeros(num_rois)
+    pval = np.zeros(num_rois)
+    pval_opp = np.zeros(num_rois)
+
+    for r in tqdm(range(num_rois)):
+        _, pval2[r] = ttest_ind(
+            fmri_tdiff_inj_all[r, ], fmri_tdiff_shm_all[r, ], alternative='two-sided', equal_var=False)
+        _, pval[r] = ttest_ind(
+            fmri_tdiff_inj_all[r, ], fmri_tdiff_shm_all[r, ], alternative='less', equal_var=False)
+        _, pval_opp[r] = ttest_ind(
+            fmri_tdiff_inj_all[r, ], fmri_tdiff_shm_all[r, ], alternative='greater', equal_var=False)
+
+    np.savez('pval.npz', pval2=pval2, pval=pval, pval_opp=pval_opp)
+    print(pval, pval2, pval_opp)
     input('press any key')
