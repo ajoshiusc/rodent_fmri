@@ -47,7 +47,7 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
     sublist = list()
     for f in flist:
         pth, fname = os.path.split(f)
-        sublist.append(fname[6:-17]) # 26
+        sublist.append(fname[6:-7]) # 26
 
     fmri_roiwise_7d_all = np.zeros([num_time, num_rois, num_sub])
     fmri_roiwise_28d_all = np.zeros([num_time, num_rois, num_sub])
@@ -56,21 +56,24 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
     for i, sub in enumerate(tqdm(sublist)):
 
         # Add extension for 7d
-        sub_7d = sub + '_7d'
+        sub_7d = sub
+
+        sub_28d = sub_7d.replace('7d_rsfmri','28d_rsfmri')
+        sub_28d = sub_28d.replace('std_07','std_28')
 
         f = glob(dir_28d + '/' + sub[:2] + '*.nii.gz')
         d, s = os.path.split(f[0])
         if len(f) != 1:
             error('error in 28th day timepoint files for ' + s)
 
-        sub_28d = s[:-14]
+        sub_28d = s[:-7]
 
-        fmri_7d = os.path.join(dir_7d, sub_7d + '_rsfmri.nii.gz')
-        labels_7d = os.path.join(dir_7d, 'atlas_' + sub_7d + '_rsfmri.nii.gz')
+        fmri_7d = os.path.join(dir_7d, sub_7d + '.nii.gz')
+        labels_7d = os.path.join(dir_7d, 'atlas_' + sub_7d + '.nii.gz')
 
-        fmri_28d = os.path.join(dir_28d, sub_28d + '_rsfmri.nii.gz')
+        fmri_28d = os.path.join(dir_28d, sub_28d + '.nii.gz')
         labels_28d = os.path.join(
-            dir_28d, 'atlas_' + sub_28d + '_rsfmri.nii.gz')
+            dir_28d, 'atlas_' + sub_28d + '.nii.gz')
 
         fmri_roiwise_7d_all[:, :, i], _ = get_roiwise_fmri(
             fmri_7d, labels_7d, label_ids)
