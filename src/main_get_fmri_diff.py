@@ -32,16 +32,13 @@ def get_roiwise_fmri(fmri, labels, label_ids):
     return rtseries_norm, rtseries
 
 
-if __name__ == "__main__":
-
-    dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
-    dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
-
+def get_fmri_diff_tpts(dir_7d, dir_28d):
     flist = glob(dir_7d + '/at*.nii.gz')
     label_ids = np.arange(83, dtype=np.int16)
+    num_time = 450
+
     # remove WM label from connectivity analysis
     label_ids = np.setdiff1d(label_ids, 0)
-    num_time = 450
     num_rois = label_ids.shape[0]
     num_sub = len(flist)
 
@@ -50,7 +47,7 @@ if __name__ == "__main__":
     sublist = list()
     for f in flist:
         pth, fname = os.path.split(f)
-        sublist.append(fname[6:26])
+        sublist.append(fname[6:-17]) # 26
 
     fmri_roiwise_7d_all = np.zeros([num_time, num_rois, num_sub])
     fmri_roiwise_28d_all = np.zeros([num_time, num_rois, num_sub])
@@ -66,7 +63,7 @@ if __name__ == "__main__":
         if len(f) != 1:
             error('error in 28th day timepoint files for ' + s)
 
-        sub_28d = s[:24]
+        sub_28d = s[:-14]
 
         fmri_7d = os.path.join(dir_7d, sub_7d + '_rsfmri.nii.gz')
         labels_7d = os.path.join(dir_7d, 'atlas_' + sub_7d + '_rsfmri.nii.gz')
@@ -86,6 +83,23 @@ if __name__ == "__main__":
         fmri_tdiff_all[:, i] = np.linalg.norm(
             fmri_roiwise_7d_all[:, :, i] - d, axis=0)
 
-    np.savez('inj.npz', fmri_tdiff_all=fmri_tdiff_all)
+    return fmri_tdiff_all
+
+
+if __name__ == "__main__":
+
+
+    dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
+    dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
+
+    fmri_tdiff_shm_all = get_fmri_diff_tpts(dir_7d,dir_28d)
+    np.savez('shm.npz', fmri_tdiff_inj_all=fmri_tdiff_shm_all)
+
+
+    dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
+    dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
+
+    fmri_tdiff_inj_all = get_fmri_diff_tpts(dir_7d,dir_28d)
+    np.savez('inj.npz', fmri_tdiff_inj_all=fmri_tdiff_inj_all)
 
     input('press any key')
