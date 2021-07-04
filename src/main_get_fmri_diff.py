@@ -118,5 +118,5 @@ if __name__ == "__main__":
             fmri_tdiff_inj_all[r, ], fmri_tdiff_shm_all[r, ], alternative='greater', equal_var=False)
 
     np.savez('pval.npz', pval2=pval2, pval=pval, pval_opp=pval_opp)
-    print(pval, pval2, pval_opp)
+    print(np.stack((pval, pval2, pval_opp)).T)
     input('press any key')
