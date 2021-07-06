@@ -231,7 +231,7 @@ if __name__ == "__main__":
                    var_28d_shm, out_fname='var_28d_shm')
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
-    num_sub = fmri_inj_7d_all.shape[3]
+    num_sub = fmri_inj_7d_all.shape[2]
     fmri_inj_7d_all_synced = np.zeros(fmri_inj_7d_all.shape)
 
     for ind in range(num_sub):
@@ -243,7 +243,7 @@ if __name__ == "__main__":
                    var_7d_inj, out_fname='var_7d_inj')
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
-    num_sub = fmri_inj_28d_all.shape[3]
+    num_sub = fmri_inj_28d_all.shape[2]
     fmri_inj_28d_all_synced = np.zeros(fmri_inj_28d_all.shape)
 
     for ind in range(num_sub):
