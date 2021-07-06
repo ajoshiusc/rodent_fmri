@@ -109,8 +109,7 @@ def plot_atlas_pval(atlas_fname, roi_ids, pval, out_fname, alpha=0.05):
     img[img > alpha] = alpha
     pval_vol = ni.new_img_like(atlas, alpha - img)
 
-    plotting.plot_stat_map(bg_img=atlas, stat_map_img=pval_vol, threshold=0.0, output_file=out_fname +
-                           '.png', draw_cross=False, annotate=True, cut_coords=[85*1.25, 111*1.25, 54*1.25], display_mode="ortho",)
+    plotting.plot_stat_map(bg_img=atlas, stat_map_img=pval_vol, threshold=0.0, output_file=out_fname + '.png', draw_cross=False, annotate=True, display_mode="ortho", cut_coords=[(85-68)*1.25,(111-90)*1.25,(54-51)*1.25]) 
     plt.show()
 
 
@@ -120,19 +119,18 @@ def plot_atlas_var(atlas_fname, roi_ids, roi_var, out_fname):
     atlas = ni.load_img(atlas_fname)
     atlas_img = atlas.get_fdata()
 
-    img = np.ones(atlas.shape)
+    img = np.zeros(atlas.shape)
 
     for i, roi in enumerate(roi_ids):
         img[atlas_img == roi] = roi_var[i]
 
-    pval_vol = ni.new_img_like(atlas, img)
+    val_vol = ni.new_img_like(atlas, img)
 
-    pval_vol.to_filename(out_fname + '.nii.gz')
-    pval_vol = ni.new_img_like(atlas, img)
+    val_vol.to_filename(out_fname + '.nii.gz')
+    val_vol = ni.new_img_like(atlas, img)
 
     # plot var
-    plotting.plot_stat_map(bg_img=atlas, stat_map_img=pval_vol,
-                           threshold=0.0, output_file=out_fname + '.png')
+    plotting.plot_stat_map(bg_img=atlas, stat_map_img=val_vol, threshold=0.0, output_file=out_fname + '.png', draw_cross=False, annotate=True, display_mode="ortho", cut_coords=[(85-68)*1.25,(111-90)*1.25,(54-51)*1.25], vmax=0.00075)
     plt.show()
 
 def fmri_sync(fmri,Os):
