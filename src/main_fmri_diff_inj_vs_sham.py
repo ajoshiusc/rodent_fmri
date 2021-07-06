@@ -130,7 +130,7 @@ def plot_atlas_var(atlas_fname, roi_ids, roi_var, out_fname):
     val_vol = ni.new_img_like(atlas, img)
 
     # plot var
-    plotting.plot_stat_map(bg_img=atlas, stat_map_img=val_vol, threshold=0.0, output_file=out_fname + '.png', draw_cross=False, annotate=True, display_mode="ortho", cut_coords=[(85-68)*1.25,(111-90)*1.25,(54-51)*1.25], vmax=0.00075)
+    plotting.plot_stat_map(bg_img=atlas, stat_map_img=val_vol, threshold=0.0, output_file=out_fname + '.png', draw_cross=False, annotate=True, display_mode="ortho", cut_coords=[(85-68)*1.25,(111-90)*1.25,(54-51)*1.25], vmax=0.001)
     plt.show()
 
 def fmri_sync(fmri,Os):
