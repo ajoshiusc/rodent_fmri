@@ -1,16 +1,17 @@
-from scipy.stats import ranksums, ttest_ind
-from scipy import io as spio
 from logging import error
+from scipy import io as spio
+from scipy.stats import ranksums, ttest_ind
 import os
 import sys
 sys.path.append('/ImagePTE1/ajoshi/code_farm/bfp/src/BrainSync')
+
 from brainsync import normalizeData, brainSync, groupBrainSync
-from tqdm import tqdm
-from glob import glob
-import nilearn.image as ni
-import numpy as np
-from nilearn import plotting
 import matplotlib.pyplot as plt
+from nilearn import plotting
+import numpy as np
+import nilearn.image as ni
+from glob import glob
+from tqdm import tqdm
 
 
 #from surfproc import patch_color_attrib, smooth_surf_function
@@ -91,7 +92,7 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
     return fmri_tdiff_all, fmri_roiwise_7d_all, fmri_roiwise_28d_all
 
 
-def plot_atlas_pval(atlas_fname, roi_ids, pval, out_fname, alpha = 0.05):
+def plot_atlas_pval(atlas_fname, roi_ids, pval, out_fname, alpha=0.05):
 
     atlas = ni.load_img(atlas_fname)
     atlas_img = atlas.get_fdata()
@@ -105,11 +106,42 @@ def plot_atlas_pval(atlas_fname, roi_ids, pval, out_fname, alpha = 0.05):
 
     pval_vol.to_filename(out_fname + '.nii.gz')
 
-    img[img>alpha] = alpha
+    img[img > alpha] = alpha
     pval_vol = ni.new_img_like(atlas, alpha - img)
 
-    plotting.plot_stat_map(bg_img=atlas, stat_map_img=pval_vol, threshold=0.0)
+    plotting.plot_stat_map(bg_img=atlas, stat_map_img=pval_vol, threshold=0.0, output_file=out_fname +
+                           '.png', draw_cross=False, annotate=True, cut_coords=[85*1.25, 111*1.25, 54*1.25], display_mode="ortho",)
     plt.show()
+
+
+def plot_atlas_var(atlas_fname, roi_ids, roi_var, out_fname):
+    """ Plot variance computed for each roi """
+
+    atlas = ni.load_img(atlas_fname)
+    atlas_img = atlas.get_fdata()
+
+    img = np.ones(atlas.shape)
+
+    for i, roi in enumerate(roi_ids):
+        img[atlas_img == roi] = roi_var[i]
+
+    pval_vol = ni.new_img_like(atlas, img)
+
+    pval_vol.to_filename(out_fname + '.nii.gz')
+    pval_vol = ni.new_img_like(atlas, img)
+
+    # plot var
+    plotting.plot_stat_map(bg_img=atlas, stat_map_img=pval_vol,
+                           threshold=0.0, output_file=out_fname + '.png')
+    plt.show()
+
+def fmri_sync(fmri,Os):
+    """Sync gmri data using given Os""" 
+    for j in range(fmri.shape[2]):
+        fmri[:,:,j] = np.dot(Os[:, :, j], fmri[:, :, j])
+
+    return fmri
+
 
 
 if __name__ == "__main__":
@@ -118,13 +150,15 @@ if __name__ == "__main__":
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
     atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
 ##
-    fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(dir_7d, dir_28d)
+    fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
+        dir_7d, dir_28d)
     np.savez('shm.npz', fmri_tdiff_inj_all=fmri_tdiff_shm_all)
 
     dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
 
-    fmri_tdiff_inj_all, fmri_inj_7d_all, fmri_inj_28d_all = get_fmri_diff_tpts(dir_7d, dir_28d)
+    fmri_tdiff_inj_all, fmri_inj_7d_all, fmri_inj_28d_all = get_fmri_diff_tpts(
+        dir_7d, dir_28d)
     np.savez('inj.npz', fmri_tdiff_inj_all=fmri_tdiff_inj_all)
 
     num_rois = fmri_tdiff_inj_all.shape[0]
@@ -143,68 +177,81 @@ if __name__ == "__main__":
     np.savez('pval.npz', pval2=pval2, pval=pval, pval_opp=pval_opp)
     print(np.stack((pval, pval2, pval_opp)).T)
 ##
-    plot_atlas_pval(atlas_fname, np.arange(1,num_rois+1), pval, out_fname='pval_7d_28d.nii.gz', alpha=0.25)
-    plot_atlas_pval(atlas_fname, np.arange(1,num_rois+1), pval2, out_fname='pval2_7d_28d.nii.gz', alpha=0.25)
-    plot_atlas_pval(atlas_fname, np.arange(1,num_rois+1), pval_opp, out_fname='pval_opp_7d_28d.nii.gz', alpha=0.25)
+    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
+                    pval, out_fname='pval_7d_28d', alpha=0.25)
+    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
+                    pval2, out_fname='pval2_7d_28d', alpha=0.25)
+    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
+                    pval_opp, out_fname='pval_opp_7d_28d', alpha=0.25)
 
- 
+##
     # Calculate variance of 7d sham
-    fmri_shm_7d_all_synced, _, Costdif, TotalError = groupBrainSync(fmri_shm_7d_all)
-    fmri_atlas = np.mean(fmri_shm_7d_all_synced, axis=3)
-    var_7d_shm = np.sum((fmri_shm_7d_all_synced - fmri_atlas)**2, axis=(1,2))
-    plot_atlas_var(atlas_fname, np.arange(1,num_rois+1), var_7d_shm, out_fname='var_7d_shm')
-
+    a, Os, Costdif, TotalError = groupBrainSync(fmri_shm_7d_all)
+    fmri_shm_7d_all_synced = fmri_sync(fmri_shm_7d_all, Os)
+    fmri_atlas_7d_shm = np.mean(fmri_shm_7d_all_synced, axis=2)
+    var_7d_shm = np.mean((fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0, 2))
+    plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
+                   var_7d_shm, out_fname='var_7d_shm')
+##
     # Calculate variance of 28d sham
-    fmri_shm_28d_all_synced, _, Costdif, TotalError = groupBrainSync(fmri_shm_28d_all)
-    fmri_atlas = np.mean(fmri_shm_28d_all_synced, axis=3)
-    var_28d_shm = np.sum((fmri_shm_28d_all_synced - fmri_atlas)**2, axis=(1,2))
-    plot_atlas_var(atlas_fname, np.arange(1,num_rois+1), var_28d_shm, out_fname='var_28d_shm')
+    a, Os, Costdif, TotalError = groupBrainSync(fmri_shm_28d_all)
+    fmri_shm_28d_all_synced = fmri_sync(fmri_shm_28d_all, Os)
+    fmri_atlas = np.mean(fmri_shm_28d_all_synced, axis=2)
+    var_28d_shm = np.mean((fmri_shm_28d_all_synced - fmri_atlas[:, :,np.newaxis])**2, axis=(0, 2))
+    plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
+                   var_28d_shm, out_fname='var_28d_shm')
 
-
+##
     # Calculate variance of 7d inj
-    fmri_inj_7d_all_synced, _, Costdif, TotalError = groupBrainSync(fmri_inj_7d_all)
-    fmri_atlas = np.mean(fmri_inj_7d_all_synced, axis=3)
-    var_7d_shm = np.sum((fmri_inj_7d_all_synced - fmri_atlas)**2, axis=(1,2))
-    plot_atlas_var(atlas_fname, np.arange(1,num_rois+1), var_7d_inj, out_fname='var_7d_inj')
+    a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_7d_all)
+    fmri_inj_7d_all_synced = fmri_sync(fmri_inj_7d_all, Os)
+    fmri_atlas = np.mean(fmri_inj_7d_all_synced, axis=2)
+    var_7d_inj = np.mean((fmri_inj_7d_all_synced - fmri_atlas[:, :,np.newaxis])**2, axis=(0, 2))
+    plot_atlas_var(atlas_fname, np.arange(1, num_rois+1), 
+                   var_7d_inj, out_fname='var_7d_inj')
 
     # Calculate variance of 28d inj
-    fmri_inj_28d_all_synced, _, Costdif, TotalError = groupBrainSync(fmri_inj_28d_all)
-    fmri_atlas = np.mean(fmri_inj_28d_all_synced, axis=3)
-    var_28d_inj = np.sum((fmri_inj_28d_all_synced - fmri_atlas)**2, axis=(1,2))
-    plot_atlas_var(atlas_fname, np.arange(1,num_rois+1), var_28d_inj, out_fname='var_28d_inj')
+    a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_28d_all)
+    fmri_inj_28d_all_synced = fmri_sync(fmri_inj_28d_all, Os)
+    fmri_atlas = np.mean(fmri_inj_28d_all_synced, axis=2)
+    var_28d_inj = np.mean((fmri_inj_28d_all_synced - fmri_atlas[:, :,np.newaxis])**2, axis=(0, 2))
+    plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
+                   var_28d_inj, out_fname='var_28d_inj')
 
     # Calculate variance of 28d shm wrt 7d shm grp atlas
-    num_sub = fmri_shm_28d_all.shape[3]
+    num_sub = fmri_shm_28d_all.shape[2]
     fmri_shm_28d_all_synced = np.zeros(fmri_shm_28d_all.shape)
 
     for ind in range(num_sub):
-        fmri_shm_28d_all_synced[:,:,ind], _ = brainSync(fmri_atlas, fmri_shm_28d_all[:,:,ind])
+        fmri_shm_28d_all_synced[:, :, ind], _ = brainSync(
+            fmri_atlas_7d_shm, fmri_shm_28d_all[:, :, ind])
 
-    var_28d_shm = np.sum((fmri_shm_28d_all_synced - fmri_atlas)**2, axis=(1,2))
-    plot_atlas_var(atlas_fname, np.arange(1,num_rois+1), var_28d_shm, out_fname='var_28d_shm')
+    var_28d_shm = np.mean((fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0, 2))
+    plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
+                   var_28d_shm, out_fname='var_28d_shm')
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_7d_all.shape[3]
     fmri_inj_7d_all_synced = np.zeros(fmri_inj_7d_all.shape)
 
     for ind in range(num_sub):
-        fmri_inj_7d_all_synced[:,:,ind], _ = brainSync(fmri_atlas, fmri_inj_7d_all[:,:,ind])
+        fmri_inj_7d_all_synced[:, :, ind], _ = brainSync(
+            fmri_atlas_7d_shm, fmri_inj_7d_all[:, :, ind])
 
-    var_7d_inj = np.sum((fmri_inj_7d_all_synced - fmri_atlas)**2, axis=(1,2))
-    plot_atlas_var(atlas_fname, np.arange(1,num_rois+1), var_7d_inj, out_fname='var_7d_inj')
+    var_7d_inj = np.mean((fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
+    plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
+                   var_7d_inj, out_fname='var_7d_inj')
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_28d_all.shape[3]
     fmri_inj_28d_all_synced = np.zeros(fmri_inj_28d_all.shape)
 
     for ind in range(num_sub):
-        fmri_inj_28d_all_synced[:,:,ind], _ = brainSync(fmri_atlas, fmri_inj_28d_all[:,:,ind])
+        fmri_inj_28d_all_synced[:, :, ind], _ = brainSync(
+            fmri_atlas_7d_shm, fmri_inj_28d_all[:, :, ind])
 
-    var_28d_inj = np.sum((fmri_inj_28d_all_synced - fmri_atlas)**2, axis=(1,2))
-    plot_atlas_var(atlas_fname, np.arange(1,num_rois+1), var_28d_inj, out_fname='var_28d_inj')
-
+    var_28d_inj = np.mean((fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0, 2))
+    plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
+                   var_28d_inj, out_fname='var_28d_inj')
 
     input('press any key')
-
-
-
