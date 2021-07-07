@@ -226,7 +226,7 @@ if __name__ == "__main__":
 
     var_28d_shm = np.mean((fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_shm, out_fname='var_28d_shm')
+                   var_28d_shm, out_fname='var_28d_shm_7d_shm')
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_7d_all.shape[2]
@@ -238,7 +238,7 @@ if __name__ == "__main__":
 
     var_7d_inj = np.mean((fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_7d_inj, out_fname='var_7d_inj')
+                   var_7d_inj, out_fname='var_7d_inj_7d_shm')
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_28d_all.shape[2]
@@ -250,6 +250,6 @@ if __name__ == "__main__":
 
     var_28d_inj = np.mean((fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_inj, out_fname='var_28d_inj')
+                   var_28d_inj, out_fname='var_28d_inj_7d_shm')
 
     input('press any key')
