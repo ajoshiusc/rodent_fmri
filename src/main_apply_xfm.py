@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 atlas = '/big_disk/ajoshi/ucla_mouse_injury/transforms_12dof_affine/atlas_labels_83_standard_space.nii.gz'
 
-subdir = 'shm_07d'
+subdir = 'inj_28d'
 
 flist = glob(os.path.join('/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats', subdir) + '/at*.nii.gz')
 
