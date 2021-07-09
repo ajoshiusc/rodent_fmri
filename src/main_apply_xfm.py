@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 atlas = '/big_disk/ajoshi/ucla_mouse_injury/transforms_12dof_affine/atlas_labels_83_standard_space.nii.gz'
 
-subdir = 'inj_28d'
+subdir = 'shm_07d'
 
 flist = glob(os.path.join('/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats', subdir) + '/at*.nii.gz')
 
@@ -24,11 +24,14 @@ for subbase in tqdm(sublist):
 
     pth, fname = os.path.split(subfile)
     outfile = os.path.join(pth,  'warped_' + fname)
+    outfile_3mm = os.path.join(pth,  'warped3mm_' + fname)
 
-    cmd = 'flirt -in ' + subfile + ' -ref ' + atlas + ' -applyxfm -init ' + xfmfile + ' -out ' + outfile
+    cmd1 = 'flirt -in ' + subfile + ' -ref ' + atlas + ' -applyxfm -init ' + xfmfile + ' -out ' + outfile
+    cmd2 = '/home/ajoshi/BrainSuite21a/svreg/bin/svreg_resample.sh ' + outfile + ' ' + outfile_3mm + ' -res 3 3 3'
 
     t1 = time.time()
-    os.system(cmd)
+    os.system(cmd1)
+    os.system(cmd2)
 
     t2 = time.time()
 
