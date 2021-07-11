@@ -26,8 +26,8 @@ for subbase in tqdm(sublist):
     outfile = os.path.join(pth,  'warped_' + fname)
     outfile_3mm = os.path.join(pth,  'warped3mm_' + fname)
 
-    cmd1 = 'flirt -in ' + subfile + ' -ref ' + atlas + ' -applyxfm -init ' + xfmfile + ' -out ' + outfile
-    cmd2 = '/home/ajoshi/BrainSuite21a/svreg/bin/svreg_resample.sh ' + outfile + ' ' + outfile_3mm + ' -res 3 3 3'
+    cmd1 = 'flirt -in ' + subfile + ' -ref ' + atlas + ' -applyxfm -init ' + xfmfile + ' -out ' + outfile + ' -interp nearestneighbour'
+    cmd2 = '/home/ajoshi/BrainSuite21a/svreg/bin/svreg_resample.sh ' + outfile + ' ' + outfile_3mm + ' -res 3 3 3 nearest'
 
     t1 = time.time()
     os.system(cmd1)
