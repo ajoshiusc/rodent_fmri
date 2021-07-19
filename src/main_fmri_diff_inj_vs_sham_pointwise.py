@@ -36,12 +36,12 @@ def get_pointwise_fmri(fmri, atlas):
 
 def get_fmri_diff_tpts(dir_7d, dir_28d):
     flist = glob(dir_7d + '/at*.nii.gz')
-    atlas = '/big_disk/ajoshi/ucla_mouse_injury/transforms_12dof_affine/atlas_labels_83_standard_space_3mm.nii.gz'
+    atlas = '/big_disk/ajoshi/ucla_mouse_injury/transforms_12dof_affine/atlas_labels_83_standard_space_6mm.nii.gz'
 
     num_time = 450
 
     # remove WM label from connectivity analysis
-    num_vox = 11317 #label_ids.shape[0]
+    num_vox = 1415 #11317 #label_ids.shape[0]
     num_sub = len(flist)
 
 
@@ -70,9 +70,9 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
 
         sub_28d = s[:-7]
 
-        fmri_7d = os.path.join(dir_7d, 'warped3mm_' + sub_7d + '.nii.gz')
+        fmri_7d = os.path.join(dir_7d, 'warped6mm_' + sub_7d + '.nii.gz')
 
-        fmri_28d = os.path.join(dir_28d,  'warped3mm_' + sub_28d + '.nii.gz')
+        fmri_28d = os.path.join(dir_28d,  'warped6mm_' + sub_28d + '.nii.gz')
 
         fmri_pointwise_7d_all[:, :, i], _, _ = get_pointwise_fmri(
             fmri_7d, atlas)
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
-    atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/transforms_12dof_affine/atlas_labels_83_standard_space_3mm.nii.gz'
+    atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/transforms_12dof_affine/atlas_labels_83_standard_space_6mm.nii.gz'
 ##
     fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
@@ -166,9 +166,9 @@ if __name__ == "__main__":
     np.savez('pval.npz', pval2=pval2, pval=pval, pval_opp=pval_opp)
     print(np.stack((pval, pval2, pval_opp)).T)
 ##
-    plot_atlas_pval_pointwise(atlas_fname, pval, out_fname='pval_7d_28d_pointwise', alpha=0.25)
-    plot_atlas_pval_pointwise(atlas_fname, pval2, out_fname='pval2_7d_28d_pointwise', alpha=0.25)
-    plot_atlas_pval_pointwise(atlas_fname, pval_opp, out_fname='pval_opp_7d_28d_pointwise', alpha=0.25)
+    plot_atlas_pval_pointwise(atlas_fname, pval, out_fname='pval_7d_28d_pointwise_6mm', alpha=0.25)
+    plot_atlas_pval_pointwise(atlas_fname, pval2, out_fname='pval2_7d_28d_pointwise_6mm', alpha=0.25)
+    plot_atlas_pval_pointwise(atlas_fname, pval_opp, out_fname='pval_opp_7d_28d_pointwise_6mm', alpha=0.25)
 
 ##
     # Calculate variance of 7d sham
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     fmri_shm_7d_all_synced = fmri_sync(fmri_shm_7d_all, Os)
     fmri_atlas_7d_shm = np.mean(fmri_shm_7d_all_synced, axis=2)
     var_7d_shm = np.mean((fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0, 2))
-    plot_atlas_var_pointwise(atlas_fname, var_7d_shm, out_fname='var_7d_shm_pointwise')
+    plot_atlas_var_pointwise(atlas_fname, var_7d_shm, out_fname='var_7d_shm_pointwise_6mm')
     dist2atlas_7d_shm = np.sum((fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0))
 ##
     # Calculate variance of 28d sham
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     fmri_shm_28d_all_synced = fmri_sync(fmri_shm_28d_all, Os)
     fmri_atlas = np.mean(fmri_shm_28d_all_synced, axis=2)
     var_28d_shm = np.mean((fmri_shm_28d_all_synced - fmri_atlas[:, :,np.newaxis])**2, axis=(0, 2))
-    plot_atlas_var_pointwise(atlas_fname, var_28d_shm, out_fname='var_28d_shm_pointwise')
+    plot_atlas_var_pointwise(atlas_fname, var_28d_shm, out_fname='var_28d_shm_pointwise_6mm')
 
 ##
     # Calculate variance of 7d inj
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     fmri_inj_28d_all_synced = fmri_sync(fmri_inj_28d_all, Os)
     fmri_atlas = np.mean(fmri_inj_28d_all_synced, axis=2)
     var_28d_inj = np.mean((fmri_inj_28d_all_synced - fmri_atlas[:, :,np.newaxis])**2, axis=(0, 2))
-    plot_atlas_var_pointwise(atlas_fname, var_28d_inj, out_fname='var_28d_inj_pointwise')
+    plot_atlas_var_pointwise(atlas_fname, var_28d_inj, out_fname='var_28d_inj_pointwise_6mm')
 
     # Calculate variance of 28d shm wrt 7d shm grp atlas
     num_sub = fmri_shm_28d_all.shape[2]
@@ -211,7 +211,7 @@ if __name__ == "__main__":
 
     dist2atlas_28d_shm = np.sum((fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0))
     var_28d_shm = np.mean((fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0, 2))
-    plot_atlas_var_pointwise(atlas_fname, var_28d_shm, out_fname='var_28d_shm_7d_shm_pointwise')
+    plot_atlas_var_pointwise(atlas_fname, var_28d_shm, out_fname='var_28d_shm_7d_shm_pointwise_6mm')
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_7d_all.shape[2]
@@ -223,7 +223,7 @@ if __name__ == "__main__":
 
     dist2atlas_7d_inj = np.sum((fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0))
     var_7d_inj = np.mean((fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
-    plot_atlas_var_pointwise(atlas_fname, var_7d_inj, out_fname='var_7d_inj_7d_shm_pointwise')
+    plot_atlas_var_pointwise(atlas_fname, var_7d_inj, out_fname='var_7d_inj_7d_shm_pointwise_6mm')
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_28d_all.shape[2]
@@ -235,7 +235,7 @@ if __name__ == "__main__":
     
     dist2atlas_28d_inj = np.sum((fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0))
     var_28d_inj = np.mean((fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :,np.newaxis])**2, axis=(0, 2))
-    plot_atlas_var_pointwise(atlas_fname, var_28d_inj, out_fname='var_28d_inj_7d_shm_pointwise')
+    plot_atlas_var_pointwise(atlas_fname, var_28d_inj, out_fname='var_28d_inj_7d_shm_pointwise_6mm')
 
     
 ## 
@@ -252,9 +252,9 @@ if __name__ == "__main__":
         _, pval2[r] = ttest_rel(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ], alternative='greater') 
         _, pval3[r] = ttest_rel(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ], alternative='less') 
 
-    plot_atlas_pval_pointwise(atlas_fname, pval, out_fname='affected_pointwise', alpha=0.05)
-    plot_atlas_pval_pointwise(atlas_fname, pval2, out_fname='get_better_pointwise', alpha=0.05)
-    plot_atlas_pval_pointwise(atlas_fname, pval3, out_fname='get_worse_pointwise', alpha=0.05)
+    plot_atlas_pval_pointwise(atlas_fname, pval, out_fname='affected_pointwise_6mm', alpha=0.001)
+    plot_atlas_pval_pointwise(atlas_fname, pval2, out_fname='get_better_pointwise_6mm', alpha=0.05)
+    plot_atlas_pval_pointwise(atlas_fname, pval3, out_fname='get_worse_pointwise_6mm', alpha=0.05)
 
     
     input('press any key')
