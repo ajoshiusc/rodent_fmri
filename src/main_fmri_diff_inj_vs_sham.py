@@ -9,11 +9,18 @@ from logging import error
 from scipy import io as spio
 from scipy.stats import ranksums, ttest_ind, ttest_rel
 import os
-
+from statsmodels.stats.power import TTestIndPower
 
 #from surfproc import patch_color_attrib, smooth_surf_function
 
 #from dfsio import readdfs, writedfs
+
+#correct if the population S.D. is expected to be equal for the two groups.
+def cohen_d(x,y):
+    nx = len(x)
+    ny = len(y)
+    dof = nx + ny - 2
+    return (np.mean(x) - np.mean(y)) / np.sqrt(((nx-1)*np.std(x, ddof=1) ** 2 + (ny-1)*np.std(y, ddof=1) ** 2) / dof)
 
 
 def get_roiwise_fmri(fmri, labels, label_ids):
@@ -290,5 +297,27 @@ if __name__ == "__main__":
                     pval2, out_fname='rois_get_better', alpha=0.05)
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
                     pval3, out_fname='rois_get_worse', alpha=0.05)
+
+## Cohen's d
+    cohen_d1 = np.zeros(num_rois)
+    cohen_d2 = np.zeros(num_rois)
+    cohen_d3 = np.zeros(num_rois)
+    tt_power = np.zeros(num_rois)
+
+    for r in tqdm(range(num_rois)):
+        cohen_d1[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_7d_shm[r, ])
+        cohen_d2[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ])
+        cohen_d3[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ])
+        analysis = TTestIndPower()
+        tt_power[r] = analysis.power(cohen_d1[r], nobs1=len(dist2atlas_7d_inj[r, ]), alpha=0.05, ratio=len(dist2atlas_7d_shm[r, ])/len(dist2atlas_7d_shm[r, ]))
+
+    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
+                    (1-tt_power), out_fname='rois_affected_tt_power', alpha=1)
+    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
+                    (2-np.abs(cohen_d1))/2, out_fname='rois_affected_cohen_d', alpha=1)
+    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
+                    (2-np.abs(cohen_d2))/2, out_fname='rois_get_better_cohen_d', alpha=1)
+    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
+                    (2-np.abs(cohen_d3))/2, out_fname='rois_get_worse_cohen_d', alpha=1)
 
     input('press any key')
