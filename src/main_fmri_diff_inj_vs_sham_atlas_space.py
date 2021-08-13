@@ -44,7 +44,7 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
     atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
 
     flist = glob(dir_7d + '/at*.nii.gz')
-    label_ids = np.arange(83, dtype=np.int16)
+    label_ids = np.arange(84, dtype=np.int16)
     num_time = 450
 
     # remove WM label from connectivity analysis
@@ -92,6 +92,10 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
 
         d, _ = brainSync(
             fmri_roiwise_7d_all[:, :, i], fmri_roiwise_28d_all[:, :, i])
+        
+        print(np.mean(np.matmul(d.T, fmri_roiwise_7d_all[:, :, i])))
+        print(np.mean(np.matmul(fmri_roiwise_28d_all[:, :, i].T, fmri_roiwise_7d_all[:, :, i])))
+
 
         fmri_tdiff_all[:, i] = np.linalg.norm(
             fmri_roiwise_7d_all[:, :, i] - d, axis=0)
