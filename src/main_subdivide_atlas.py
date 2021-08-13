@@ -7,7 +7,7 @@ from sklearn.cluster import KMeans
 
 if __name__ == "__main__":
 
-    n_subclusters = 10
+    n_subclusters = 2
     atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
 
     v = ni.load_img(atlas_fname)
