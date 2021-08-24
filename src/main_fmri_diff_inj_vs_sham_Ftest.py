@@ -10,6 +10,7 @@ from scipy import io as spio
 from scipy.stats import ranksums, ttest_ind, ttest_rel
 import os
 from statsmodels.stats.power import TTestIndPower
+import scipy.stats as ss
 
 #from surfproc import patch_color_attrib, smooth_surf_function
 
@@ -137,8 +138,8 @@ def plot_atlas_var(atlas_fname, roi_ids, roi_var, out_fname, vmax=0.001, vmin=0)
     val_vol = ni.new_img_like(atlas, img)
 
     # plot var
-    plotting.plot_img(img=val_vol, threshold=vmin, output_file=out_fname + '.png', draw_cross=False, annotate=True,black_bg=True,
-                      display_mode="ortho", cut_coords=[(85-68)*1.25, (111-90)*1.25, (54-51)*1.25], vmax=vmax, vmin=vmin, colorbar=True,cmap='hot')
+    plotting.plot_stat_map(bg_img=atlas, stat_map_img=val_vol, threshold=vmin, output_file=out_fname + '.png', draw_cross=False,
+                           annotate=True, display_mode="ortho", cut_coords=[(85-68)*1.25, (111-90)*1.25, (54-51)*1.25], vmax=vmax)
     plt.show()
 
 
@@ -168,27 +169,6 @@ if __name__ == "__main__":
     np.savez('inj.npz', fmri_tdiff_inj_all=fmri_tdiff_inj_all)
 
     num_rois = fmri_tdiff_inj_all.shape[0]
-    pval2 = np.zeros(num_rois)
-    pval = np.zeros(num_rois)
-    pval_opp = np.zeros(num_rois)
-
-    for r in tqdm(range(num_rois)):
-        _, pval2[r] = ttest_ind(
-            fmri_tdiff_inj_all[r, ], fmri_tdiff_shm_all[r, ], alternative='two-sided', equal_var=False)
-        _, pval[r] = ttest_ind(
-            fmri_tdiff_inj_all[r, ], fmri_tdiff_shm_all[r, ], alternative='less', equal_var=False)
-        _, pval_opp[r] = ttest_ind(
-            fmri_tdiff_inj_all[r, ], fmri_tdiff_shm_all[r, ], alternative='greater', equal_var=False)
-
-    np.savez('pval.npz', pval2=pval2, pval=pval, pval_opp=pval_opp)
-    print(np.stack((pval, pval2, pval_opp)).T)
-##
-    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    pval, out_fname='pval_7d_28d', alpha=0.25)
-    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    pval2, out_fname='pval2_7d_28d', alpha=0.25)
-    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    pval_opp, out_fname='pval_opp_7d_28d', alpha=0.25)
 
 ##
     # Calculate variance of 7d sham
@@ -198,7 +178,7 @@ if __name__ == "__main__":
     var_7d_shm = np.mean(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_7d_shm, out_fname='var_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_7d_shm, out_fname='var_7d_shm_ftest')
     dist2atlas_7d_shm = np.sum(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0))
 ##
@@ -209,7 +189,7 @@ if __name__ == "__main__":
     var_28d_shm = np.mean(
         (fmri_shm_28d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_shm, out_fname='var_28d_shm', vmax=0.0006, vmin=0.0004)
+                   var_28d_shm, out_fname='var_28d_shm_ftest')
 
 ##
     # Calculate variance of 7d inj
@@ -219,7 +199,7 @@ if __name__ == "__main__":
     var_7d_inj = np.mean(
         (fmri_inj_7d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_7d_inj, out_fname='var_7d_inj', vmax=0.0006, vmin=0.0004)
+                   var_7d_inj, out_fname='var_7d_inj_ftest')
 
     # Calculate variance of 28d inj
     a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_28d_all)
@@ -228,7 +208,7 @@ if __name__ == "__main__":
     var_28d_inj = np.mean(
         (fmri_inj_28d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_inj, out_fname='var_28d_inj', vmax=0.0006, vmin=0.0004)
+                   var_28d_inj, out_fname='var_28d_inj_ftest')
 
     # Calculate variance of 28d shm wrt 7d shm grp atlas
     num_sub = fmri_shm_28d_all.shape[2]
@@ -243,10 +223,11 @@ if __name__ == "__main__":
     var_28d_shm = np.mean(
         (fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_shm, out_fname='var_28d_shm_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_28d_shm, out_fname='var_28d_shm_7d_shm_ftest')
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_7d_all.shape[2]
+    
     fmri_inj_7d_all_synced = np.zeros(fmri_inj_7d_all.shape)
 
     for ind in range(num_sub):
@@ -258,7 +239,7 @@ if __name__ == "__main__":
     var_7d_inj = np.mean(
         (fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_7d_inj, out_fname='var_7d_inj_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_7d_inj, out_fname='var_7d_inj_7d_shm_ftest')
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_28d_all.shape[2]
@@ -273,7 +254,7 @@ if __name__ == "__main__":
     var_28d_inj = np.mean(
         (fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_inj, out_fname='var_28d_inj_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_28d_inj, out_fname='var_28d_inj_7d_shm_ftest')
 
 
 ##
@@ -282,23 +263,24 @@ if __name__ == "__main__":
 # Which ROIs get worse in TBI: 7d inj vs 28d injury
 
     pval = np.zeros(num_rois)
-    pval2 = np.zeros(num_rois)
-    pval3 = np.zeros(num_rois)
+    numT = fmri_inj_7d_all_synced.shape[0]
 
     for r in tqdm(range(num_rois)):
-        _, pval[r] = ttest_ind(
-            dist2atlas_7d_inj[r, ], dist2atlas_7d_shm[r, ], alternative='greater', equal_var=False)
-        _, pval2[r] = ttest_rel(dist2atlas_7d_inj[r, ],
-                                dist2atlas_28d_inj[r, ], alternative='greater')
-        _, pval3[r] = ttest_rel(dist2atlas_7d_inj[r, ],
-                                dist2atlas_28d_inj[r, ], alternative='less')
+
+        S1 = var_7d_inj[r]
+        S2 = var_7d_shm[r]
+        n1 = len(var_7d_inj)*numT
+        n2 = len(var_7d_shm)*numT
+
+        F = S1 / (S2 + 1e-16)
+        pval[r] = 1 - ss.f.cdf(F, n1 - 1, n2 - 1)
+
+        #_, pval[r] = ttest_ind(dist2atlas_7d_inj[r, ], dist2atlas_7d_shm[r, ], alternative='greater', equal_var=False)
+        #_, pval2[r] = ttest_rel(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ], alternative='greater')
+        #_, pval3[r] = ttest_rel(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ], alternative='less')
 
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    pval, out_fname='rois_affected', alpha=0.05)
-    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    pval2, out_fname='rois_get_better', alpha=0.05)
-    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    pval3, out_fname='rois_get_worse', alpha=0.05)
+                    pval, out_fname='rois_affected_ftest', alpha=0.05)
 
 # Cohen's d
     cohen_d1 = np.zeros(num_rois)
