@@ -9,7 +9,7 @@ from logging import error
 from scipy import io as spio
 from scipy.stats import ranksums, ttest_ind, ttest_rel
 import os
-from statsmodels.stats.power import TTestIndPower
+from statsmodels.stats.power import TTestIndPower, FTestPower
 import scipy.stats as ss
 
 #from surfproc import patch_color_attrib, smooth_surf_function
@@ -169,6 +169,8 @@ if __name__ == "__main__":
     np.savez('inj.npz', fmri_tdiff_inj_all=fmri_tdiff_inj_all)
 
     num_rois = fmri_tdiff_inj_all.shape[0]
+    num_sub_shm = fmri_tdiff_shm_all.shape[1]
+    num_sub_inj = fmri_tdiff_inj_all.shape[1]
 
 ##
     # Calculate variance of 7d sham
@@ -227,7 +229,7 @@ if __name__ == "__main__":
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_7d_all.shape[2]
-    
+
     fmri_inj_7d_all_synced = np.zeros(fmri_inj_7d_all.shape)
 
     for ind in range(num_sub):
@@ -263,17 +265,19 @@ if __name__ == "__main__":
 # Which ROIs get worse in TBI: 7d inj vs 28d injury
 
     pval = np.zeros(num_rois)
+    F = np.zeros(num_rois)
+
     numT = fmri_inj_7d_all_synced.shape[0]
 
     for r in tqdm(range(num_rois)):
 
         S1 = var_7d_inj[r]
         S2 = var_7d_shm[r]
-        n1 = len(var_7d_inj)*numT
-        n2 = len(var_7d_shm)*numT
+        n1 = num_sub_inj#*numT
+        n2 = num_sub_shm#*numT
 
-        F = S1 / (S2 + 1e-16)
-        pval[r] = 1 - ss.f.cdf(F, n1 - 1, n2 - 1)
+        F[r] = S1 / (S2 + 1e-16)
+        pval[r] = 1 - ss.f.cdf(F[r], n1 - 1, n2 - 1)
 
         #_, pval[r] = ttest_ind(dist2atlas_7d_inj[r, ], dist2atlas_7d_shm[r, ], alternative='greater', equal_var=False)
         #_, pval2[r] = ttest_rel(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ], alternative='greater')
@@ -283,26 +287,15 @@ if __name__ == "__main__":
                     pval, out_fname='rois_affected_ftest', alpha=0.05)
 
 # Cohen's d
-    cohen_d1 = np.zeros(num_rois)
-    cohen_d2 = np.zeros(num_rois)
-    cohen_d3 = np.zeros(num_rois)
-    tt_power = np.zeros(num_rois)
+    cohen_f = np.zeros(num_rois)
+    f_power = np.zeros(num_rois)
+
+    analysis = FTestPower()
 
     for r in tqdm(range(num_rois)):
-        cohen_d1[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_7d_shm[r, ])
-        cohen_d2[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ])
-        cohen_d3[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ])
-        analysis = TTestIndPower()
-        tt_power[r] = analysis.power(cohen_d1[r], nobs1=len(dist2atlas_7d_inj[r, ]), alpha=0.05, ratio=len(
-            dist2atlas_7d_shm[r, ])/len(dist2atlas_7d_shm[r, ]))
+        f_power[r] = analysis.power(F[r], df_num=n1, df_denom=n2, alpha=0.05)
 
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    (1-tt_power), out_fname='rois_affected_tt_power', alpha=1)
-    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    (2-np.abs(cohen_d1))/2, out_fname='rois_affected_cohen_d', alpha=1)
-    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    (2-np.abs(cohen_d2))/2, out_fname='rois_get_better_cohen_d', alpha=1)
-    plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    (2-np.abs(cohen_d3))/2, out_fname='rois_get_worse_cohen_d', alpha=1)
+                    (1-f_power), out_fname='rois_affected_f_power', alpha=1)
 
     input('press any key')
