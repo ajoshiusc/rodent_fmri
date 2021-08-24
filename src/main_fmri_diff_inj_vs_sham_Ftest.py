@@ -273,8 +273,8 @@ if __name__ == "__main__":
 
         S1 = var_7d_inj[r]
         S2 = var_7d_shm[r]
-        n1 = num_sub_inj#*numT
-        n2 = num_sub_shm#*numT
+        n1 = num_sub_inj
+        n2 = num_sub_shm
 
         F[r] = S1 / (S2 + 1e-16)
         pval[r] = 1 - ss.f.cdf(F[r], n1 - 1, n2 - 1)
