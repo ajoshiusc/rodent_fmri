@@ -1,4 +1,4 @@
-# rodent_fmri
+# Rodent fmri analysis for TBI
 
 `main_apply_xfm.py` warps subject fmri data to atlas space for pointwise analysis
 
