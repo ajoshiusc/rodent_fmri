@@ -10,16 +10,13 @@ from scipy import io as spio
 from scipy.stats import ranksums, ttest_ind, ttest_rel
 import os
 from statsmodels.stats.power import TTestIndPower
-import csv
 
 #from surfproc import patch_color_attrib, smooth_surf_function
 
 #from dfsio import readdfs, writedfs
 
-# correct if the population S.D. is expected to be equal for the two groups.
-
-
-def cohen_d(x, y):
+#correct if the population S.D. is expected to be equal for the two groups.
+def cohen_d(x,y):
     nx = len(x)
     ny = len(y)
     dof = nx + ny - 2
@@ -43,8 +40,11 @@ def get_roiwise_fmri(fmri, labels, label_ids):
 
 
 def get_fmri_diff_tpts(dir_7d, dir_28d):
+
+    atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel_k5.nii.gz'
+
     flist = glob(dir_7d + '/at*.nii.gz')
-    label_ids = np.arange(83, dtype=np.int16)
+    label_ids = np.arange(84*5, dtype=np.int16)
     num_time = 450
 
     # remove WM label from connectivity analysis
@@ -57,7 +57,7 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
     sublist = list()
     for f in flist:
         pth, fname = os.path.split(f)
-        sublist.append(fname[6:-7])  # 26
+        sublist.append('warped_'+fname[6:-7])  # 26
 
     fmri_roiwise_7d_all = np.zeros([num_time, num_rois, num_sub])
     fmri_roiwise_28d_all = np.zeros([num_time, num_rois, num_sub])
@@ -71,19 +71,19 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
         sub_28d = sub_7d.replace('7d_rsfmri', '28d_rsfmri')
         sub_28d = sub_28d.replace('std_07', 'std_28')
 
-        f = glob(dir_28d + '/' + sub[:2] + '*.nii.gz')
+        f = glob(dir_28d + '/' + sub[7:9] + '*.nii.gz')
         d, s = os.path.split(f[0])
+        s = 'warped_' + s
         if len(f) != 1:
             error('error in 28th day timepoint files for ' + s)
 
         sub_28d = s[:-7]
 
         fmri_7d = os.path.join(dir_7d, sub_7d + '.nii.gz')
-        labels_7d = os.path.join(dir_7d, 'atlas_' + sub_7d + '.nii.gz')
+        labels_7d = atlas_fname
 
         fmri_28d = os.path.join(dir_28d, sub_28d + '.nii.gz')
-        labels_28d = os.path.join(
-            dir_28d, 'atlas_' + sub_28d + '.nii.gz')
+        labels_28d = atlas_fname
 
         fmri_roiwise_7d_all[:, :, i], _ = get_roiwise_fmri(
             fmri_7d, labels_7d, label_ids)
@@ -92,6 +92,10 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
 
         d, _ = brainSync(
             fmri_roiwise_7d_all[:, :, i], fmri_roiwise_28d_all[:, :, i])
+        
+        print(np.mean(np.matmul(d.T, fmri_roiwise_7d_all[:, :, i])))
+        print(np.mean(np.matmul(fmri_roiwise_28d_all[:, :, i].T, fmri_roiwise_7d_all[:, :, i])))
+
 
         fmri_tdiff_all[:, i] = np.linalg.norm(
             fmri_roiwise_7d_all[:, :, i] - d, axis=0)
@@ -116,12 +120,12 @@ def plot_atlas_pval(atlas_fname, roi_ids, pval, out_fname, alpha=0.05):
     img[img > alpha] = alpha
     pval_vol = ni.new_img_like(atlas, alpha - img)
 
-    plotting.plot_stat_map(bg_img=atlas, stat_map_img=pval_vol, vmax=alpha, threshold=0.0, output_file=out_fname + '.png',
+    plotting.plot_stat_map(bg_img=atlas, stat_map_img=pval_vol, vmax=alpha, threshold=0.0, output_file=out_fname + '_w_k5.png',
                            draw_cross=False, annotate=True, display_mode="ortho", cut_coords=[(85-68)*1.25, (111-90)*1.25, (54-51)*1.25])
     plt.show()
 
 
-def plot_atlas_var(atlas_fname, roi_ids, roi_var, out_fname, vmax=0.001, vmin=0):
+def plot_atlas_var(atlas_fname, roi_ids, roi_var, out_fname):
     """ Plot variance computed for each roi """
 
     atlas = ni.load_img(atlas_fname)
@@ -138,8 +142,8 @@ def plot_atlas_var(atlas_fname, roi_ids, roi_var, out_fname, vmax=0.001, vmin=0)
     val_vol = ni.new_img_like(atlas, img)
 
     # plot var
-    plotting.plot_img(img=val_vol, threshold=vmin, output_file=out_fname + '.png', draw_cross=False, annotate=True,black_bg=True,
-                      display_mode="ortho", cut_coords=[(85-68)*1.25, (111-90)*1.25, (54-51)*1.25], vmax=vmax, vmin=vmin, colorbar=True,cmap='hot')
+    plotting.plot_stat_map(bg_img=atlas, stat_map_img=val_vol, threshold=0.0, output_file=out_fname + '_w_k5.png', draw_cross=False,
+                           annotate=True, display_mode="ortho", cut_coords=[(85-68)*1.25, (111-90)*1.25, (54-51)*1.25], vmax=0.001)
     plt.show()
 
 
@@ -155,7 +159,7 @@ if __name__ == "__main__":
 
     dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
-    atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
+    atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel_k5.nii.gz'
 ##
     fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
@@ -199,7 +203,7 @@ if __name__ == "__main__":
     var_7d_shm = np.mean(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_7d_shm, out_fname='var_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_7d_shm, out_fname='var_7d_shm')
     dist2atlas_7d_shm = np.sum(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0))
 ##
@@ -210,7 +214,7 @@ if __name__ == "__main__":
     var_28d_shm = np.mean(
         (fmri_shm_28d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_shm, out_fname='var_28d_shm', vmax=0.0006, vmin=0.0004)
+                   var_28d_shm, out_fname='var_28d_shm')
 
 ##
     # Calculate variance of 7d inj
@@ -220,7 +224,7 @@ if __name__ == "__main__":
     var_7d_inj = np.mean(
         (fmri_inj_7d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_7d_inj, out_fname='var_7d_inj', vmax=0.0006, vmin=0.0004)
+                   var_7d_inj, out_fname='var_7d_inj')
 
     # Calculate variance of 28d inj
     a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_28d_all)
@@ -229,7 +233,7 @@ if __name__ == "__main__":
     var_28d_inj = np.mean(
         (fmri_inj_28d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_inj, out_fname='var_28d_inj', vmax=0.0006, vmin=0.0004)
+                   var_28d_inj, out_fname='var_28d_inj')
 
     # Calculate variance of 28d shm wrt 7d shm grp atlas
     num_sub = fmri_shm_28d_all.shape[2]
@@ -244,7 +248,7 @@ if __name__ == "__main__":
     var_28d_shm = np.mean(
         (fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_shm, out_fname='var_28d_shm_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_28d_shm, out_fname='var_28d_shm_7d_shm')
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_7d_all.shape[2]
@@ -259,7 +263,7 @@ if __name__ == "__main__":
     var_7d_inj = np.mean(
         (fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_7d_inj, out_fname='var_7d_inj_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_7d_inj, out_fname='var_7d_inj_7d_shm')
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_28d_all.shape[2]
@@ -274,7 +278,7 @@ if __name__ == "__main__":
     var_28d_inj = np.mean(
         (fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_inj, out_fname='var_28d_inj_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_28d_inj, out_fname='var_28d_inj_7d_shm')
 
 
 ##
@@ -301,19 +305,7 @@ if __name__ == "__main__":
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
                     pval3, out_fname='rois_get_worse', alpha=0.05)
 
-
-    # Write the p values to csv file
-    fieldnames = ["ROI ID", "pval_affected", "pval_get_better", "pval_get_worse"]
-
-    roiIDs = np.arange(1,83)
-    with open('rois_affected_rois_get_better_rois_get_worse_pvalues.csv', 'w') as outcsv:
-        writer = csv.DictWriter(outcsv,fieldnames=fieldnames)
-        writer.writeheader()
-        for i, roiid in enumerate(roiIDs):
-            writer.writerow({'ROI ID':roiIDs[i], "pval_affected":pval[i],"pval_get_better":pval2[i],"pval_get_worse":pval3[i]})
-
-
-# Cohen's d
+## Cohen's d
     cohen_d1 = np.zeros(num_rois)
     cohen_d2 = np.zeros(num_rois)
     cohen_d3 = np.zeros(num_rois)
@@ -324,11 +316,8 @@ if __name__ == "__main__":
         cohen_d2[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ])
         cohen_d3[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ])
         analysis = TTestIndPower()
-        tt_power[r] = analysis.power(cohen_d1[r], nobs1=len(dist2atlas_7d_inj[r, ]), alpha=0.05, ratio=len(
-            dist2atlas_7d_shm[r, ])/len(dist2atlas_7d_shm[r, ]))
+        tt_power[r] = analysis.power(cohen_d1[r], nobs1=len(dist2atlas_7d_inj[r, ]), alpha=0.05, ratio=len(dist2atlas_7d_shm[r, ])/len(dist2atlas_7d_shm[r, ]))
 
-    print('Please Note that colorbars should go from 0 to 2, \
-        but due to limitation of the nilearn functions, the data is scaled by a factor of 2')
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
                     (1-tt_power), out_fname='rois_affected_tt_power', alpha=1)
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),

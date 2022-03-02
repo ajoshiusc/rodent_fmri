@@ -43,9 +43,8 @@ def brainSync(X, Y):
        Y2 - Synced subject data (Time x Vertex)\n
        R - The orthogonal rotation matrix (Time x Time)
        """
-    if X.shape[0] > X.shape[1]:
-        print('The input is possibly transposed. Please check to make sure \
-that the input is time x vertices!')
+    #if X.shape[0] > X.shape[1]:
+        #print('The input is possibly transposed. Please check to make sure that the input is time x vertices!')
 
     C = sp.dot(X, Y.T)
     U, _, V = sp.linalg.svd(C)
