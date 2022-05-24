@@ -26,6 +26,23 @@ def cohen_d(x, y):
     return (np.mean(x) - np.mean(y)) / np.sqrt(((nx-1)*np.std(x, ddof=1) ** 2 + (ny-1)*np.std(y, ddof=1) ** 2) / dof)
 
 
+def save_roiwise_fmri(data, origfmrifile, outfmrifile, labelsfile, label_ids):
+
+    labels = ni.load_img(labelsfile).get_fdata()
+    fmri = ni.load_img(origfmrifile).get_fdata()
+    num_time = fmri.shape[3]
+    num_rois = len(label_ids)
+    rtseries = np.zeros(fmri.shape)
+
+    # Copy the mean synced time series to each ROI
+    for i, id in enumerate(label_ids):
+        rtseries[labels == id, :] = data[:, i]
+
+    nii = ni.new_img_like(origfmrifile, rtseries)
+
+    nii.to_filename(outfmrifile)
+
+
 def get_roiwise_fmri(fmri, labels, label_ids):
 
     labels = ni.load_img(labels).get_fdata()
@@ -61,6 +78,7 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
 
     fmri_roiwise_7d_all = np.zeros([num_time, num_rois, num_sub])
     fmri_roiwise_28d_all = np.zeros([num_time, num_rois, num_sub])
+    fmri_roiwise_28d_synced_all = np.zeros([num_time, num_rois, num_sub])
     fmri_tdiff_all = np.zeros([num_rois, num_sub])
 
     for i, sub in enumerate(tqdm(sublist)):
@@ -93,10 +111,12 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
         d, _ = brainSync(
             fmri_roiwise_7d_all[:, :, i], fmri_roiwise_28d_all[:, :, i])
 
+        fmri_roiwise_28d_synced_all[:, :, i] = d
+
         fmri_tdiff_all[:, i] = np.linalg.norm(
             fmri_roiwise_7d_all[:, :, i] - d, axis=0)
 
-    return fmri_tdiff_all, fmri_roiwise_7d_all, fmri_roiwise_28d_all
+    return fmri_tdiff_all, fmri_roiwise_28d_synced_all, fmri_roiwise_7d_all, fmri_roiwise_28d_all
 
 
 def plot_atlas_pval(atlas_fname, roi_ids, pval, out_fname, alpha=0.05):
@@ -138,8 +158,8 @@ def plot_atlas_var(atlas_fname, roi_ids, roi_var, out_fname, vmax=0.001, vmin=0)
     val_vol = ni.new_img_like(atlas, img)
 
     # plot var
-    plotting.plot_img(img=val_vol, threshold=vmin, output_file=out_fname + '.png', draw_cross=False, annotate=True,black_bg=True,
-                      display_mode="ortho", cut_coords=[(85-68)*1.25, (111-90)*1.25, (54-51)*1.25], vmax=vmax, vmin=vmin, colorbar=True,cmap='hot')
+    plotting.plot_img(img=val_vol, threshold=vmin, output_file=out_fname + '.png', draw_cross=False, annotate=True, black_bg=True,
+                      display_mode="ortho", cut_coords=[(85-68)*1.25, (111-90)*1.25, (54-51)*1.25], vmax=vmax, vmin=vmin, colorbar=True, cmap='hot')
     plt.show()
 
 
@@ -155,18 +175,27 @@ if __name__ == "__main__":
 
     dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
+    # dir with synced nifti files for shm group
+    dir_28d_synced = '/home/ajoshi/Desktop/shm_28d_synced/'
     atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
 ##
-    fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
+    fmri_tdiff_shm_all, fmri_shm_28d_synced_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
     np.savez('shm.npz', fmri_tdiff_inj_all=fmri_tdiff_shm_all)
+    # saved as time x roi x subject
+    np.savez('shm_synced_28d_to_7d.npz', fmri_shm_28d_synced_all=fmri_shm_28d_synced_all)
 
     dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
+    # dir with synced nifti files for inj group
+    dir_28d_synced = '/home/ajoshi/Desktop/inj_28d_synced/'
 
-    fmri_tdiff_inj_all, fmri_inj_7d_all, fmri_inj_28d_all = get_fmri_diff_tpts(
+    fmri_tdiff_inj_all, fmri_inj_28d_synced_all, fmri_inj_7d_all, fmri_inj_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
+
     np.savez('inj.npz', fmri_tdiff_inj_all=fmri_tdiff_inj_all)
+    # saved as time x roi x subject
+    np.savez('inj_synced_28d_to_7d.npz', fmri_inj_28d_synced_all=fmri_inj_28d_synced_all)
 
     num_rois = fmri_tdiff_inj_all.shape[0]
     pval2 = np.zeros(num_rois)
@@ -195,6 +224,9 @@ if __name__ == "__main__":
     # Calculate variance of 7d sham
     a, Os, Costdif, TotalError = groupBrainSync(fmri_shm_7d_all)
     fmri_shm_7d_all_synced = fmri_sync(fmri_shm_7d_all, Os)
+
+    np.savez('shm_7d_grp_synced.npz',fmri_shm_7d_all_synced=fmri_shm_7d_all_synced)
+
     fmri_atlas_7d_shm = np.mean(fmri_shm_7d_all_synced, axis=2)
     var_7d_shm = np.mean(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
@@ -206,6 +238,9 @@ if __name__ == "__main__":
     # Calculate variance of 28d sham
     a, Os, Costdif, TotalError = groupBrainSync(fmri_shm_28d_all)
     fmri_shm_28d_all_synced = fmri_sync(fmri_shm_28d_all, Os)
+
+    np.savez('shm_28d_grp_synced.npz',fmri_shm_28d_all_synced=fmri_shm_28d_all_synced)
+
     fmri_atlas = np.mean(fmri_shm_28d_all_synced, axis=2)
     var_28d_shm = np.mean(
         (fmri_shm_28d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
@@ -216,6 +251,9 @@ if __name__ == "__main__":
     # Calculate variance of 7d inj
     a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_7d_all)
     fmri_inj_7d_all_synced = fmri_sync(fmri_inj_7d_all, Os)
+
+    np.savez('inj_7d_grp_synced.npz',fmri_inj_7d_all_synced=fmri_inj_7d_all_synced)
+
     fmri_atlas = np.mean(fmri_inj_7d_all_synced, axis=2)
     var_7d_inj = np.mean(
         (fmri_inj_7d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
@@ -225,6 +263,9 @@ if __name__ == "__main__":
     # Calculate variance of 28d inj
     a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_28d_all)
     fmri_inj_28d_all_synced = fmri_sync(fmri_inj_28d_all, Os)
+
+    np.savez('inj_28d_grp_synced.npz',fmri_inj_28d_all_synced=fmri_inj_28d_all_synced)
+
     fmri_atlas = np.mean(fmri_inj_28d_all_synced, axis=2)
     var_28d_inj = np.mean(
         (fmri_inj_28d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
@@ -238,6 +279,8 @@ if __name__ == "__main__":
     for ind in range(num_sub):
         fmri_shm_28d_all_synced[:, :, ind], _ = brainSync(
             fmri_atlas_7d_shm, fmri_shm_28d_all[:, :, ind])
+
+    np.savez('shm_28d_synced_to_7d_shm_atlas.npz', fmri_shm_28d_all_synced=fmri_shm_28d_all_synced)
 
     dist2atlas_28d_shm = np.sum(
         (fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0))
@@ -254,6 +297,8 @@ if __name__ == "__main__":
         fmri_inj_7d_all_synced[:, :, ind], _ = brainSync(
             fmri_atlas_7d_shm, fmri_inj_7d_all[:, :, ind])
 
+    np.savez('inj_7d_synced_to_7d_shm_atlas.npz', fmri_inj_7d_all_synced=fmri_inj_7d_all_synced)
+
     dist2atlas_7d_inj = np.sum(
         (fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0))
     var_7d_inj = np.mean(
@@ -268,6 +313,8 @@ if __name__ == "__main__":
     for ind in range(num_sub):
         fmri_inj_28d_all_synced[:, :, ind], _ = brainSync(
             fmri_atlas_7d_shm, fmri_inj_28d_all[:, :, ind])
+
+    np.savez('inj_28d_synced_to_7d_shm_atlas.npz', fmri_inj_28d_all_synced=fmri_inj_28d_all_synced)
 
     dist2atlas_28d_inj = np.sum(
         (fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0))
@@ -301,16 +348,17 @@ if __name__ == "__main__":
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
                     pval3, out_fname='rois_get_worse', alpha=0.05)
 
-
     # Write the p values to csv file
-    fieldnames = ["ROI ID", "pval_affected", "pval_get_better", "pval_get_worse"]
+    fieldnames = ["ROI ID", "pval_affected",
+                  "pval_get_better", "pval_get_worse"]
 
-    roiIDs = np.arange(1,83)
+    roiIDs = np.arange(1, 83)
     with open('rois_affected_rois_get_better_rois_get_worse_pvalues.csv', 'w') as outcsv:
-        writer = csv.DictWriter(outcsv,fieldnames=fieldnames)
+        writer = csv.DictWriter(outcsv, fieldnames=fieldnames)
         writer.writeheader()
         for i, roiid in enumerate(roiIDs):
-            writer.writerow({'ROI ID':roiIDs[i], "pval_affected":pval[i],"pval_get_better":pval2[i],"pval_get_worse":pval3[i]})
+            writer.writerow({'ROI ID': roiIDs[i], "pval_affected": pval[i],
+                            "pval_get_better": pval2[i], "pval_get_worse": pval3[i]})
 
 
 # Cohen's d
