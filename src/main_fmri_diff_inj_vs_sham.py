@@ -183,7 +183,7 @@ if __name__ == "__main__":
         dir_7d, dir_28d)
     np.savez('shm.npz', fmri_tdiff_inj_all=fmri_tdiff_shm_all)
     # saved as time x roi x subject
-    np.savez('shm_synced_28d_to_7d.npz', fmri_shm_28d_synced_all=fmri_shm_28d_synced_all)
+    spio.savemat('shm_synced_28d_to_7d.mat', {'fmri_shm_28d_synced_all':fmri_shm_28d_synced_all})
 
     dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
@@ -195,7 +195,7 @@ if __name__ == "__main__":
 
     np.savez('inj.npz', fmri_tdiff_inj_all=fmri_tdiff_inj_all)
     # saved as time x roi x subject
-    np.savez('inj_synced_28d_to_7d.npz', fmri_inj_28d_synced_all=fmri_inj_28d_synced_all)
+    spio.savemat('inj_synced_28d_to_7d.mat', {'fmri_inj_28d_synced_all':fmri_inj_28d_synced_all})
 
     num_rois = fmri_tdiff_inj_all.shape[0]
     pval2 = np.zeros(num_rois)
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     a, Os, Costdif, TotalError = groupBrainSync(fmri_shm_7d_all)
     fmri_shm_7d_all_synced = fmri_sync(fmri_shm_7d_all, Os)
 
-    np.savez('shm_7d_grp_synced.npz',fmri_shm_7d_all_synced=fmri_shm_7d_all_synced)
+    spio.savemat('shm_7d_grp_synced.mat',{'fmri_shm_7d_all_synced':fmri_shm_7d_all_synced})
 
     fmri_atlas_7d_shm = np.mean(fmri_shm_7d_all_synced, axis=2)
     var_7d_shm = np.mean(
@@ -239,7 +239,7 @@ if __name__ == "__main__":
     a, Os, Costdif, TotalError = groupBrainSync(fmri_shm_28d_all)
     fmri_shm_28d_all_synced = fmri_sync(fmri_shm_28d_all, Os)
 
-    np.savez('shm_28d_grp_synced.npz',fmri_shm_28d_all_synced=fmri_shm_28d_all_synced)
+    spio.savemat('shm_28d_grp_synced.mat',{'fmri_shm_28d_all_synced':fmri_shm_28d_all_synced})
 
     fmri_atlas = np.mean(fmri_shm_28d_all_synced, axis=2)
     var_28d_shm = np.mean(
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_7d_all)
     fmri_inj_7d_all_synced = fmri_sync(fmri_inj_7d_all, Os)
 
-    np.savez('inj_7d_grp_synced.npz',fmri_inj_7d_all_synced=fmri_inj_7d_all_synced)
+    spio.savemat('inj_7d_grp_synced.mat',{'fmri_inj_7d_all_synced':fmri_inj_7d_all_synced})
 
     fmri_atlas = np.mean(fmri_inj_7d_all_synced, axis=2)
     var_7d_inj = np.mean(
@@ -264,7 +264,7 @@ if __name__ == "__main__":
     a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_28d_all)
     fmri_inj_28d_all_synced = fmri_sync(fmri_inj_28d_all, Os)
 
-    np.savez('inj_28d_grp_synced.npz',fmri_inj_28d_all_synced=fmri_inj_28d_all_synced)
+    spio.savemat('inj_28d_grp_synced.mat',{'fmri_inj_28d_all_synced':fmri_inj_28d_all_synced})
 
     fmri_atlas = np.mean(fmri_inj_28d_all_synced, axis=2)
     var_28d_inj = np.mean(
@@ -280,7 +280,7 @@ if __name__ == "__main__":
         fmri_shm_28d_all_synced[:, :, ind], _ = brainSync(
             fmri_atlas_7d_shm, fmri_shm_28d_all[:, :, ind])
 
-    np.savez('shm_28d_synced_to_7d_shm_atlas.npz', fmri_shm_28d_all_synced=fmri_shm_28d_all_synced)
+    spio.savemat('shm_28d_synced_to_7d_shm_atlas.mat', {'fmri_shm_28d_all_synced':fmri_shm_28d_all_synced})
 
     dist2atlas_28d_shm = np.sum(
         (fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0))
@@ -297,7 +297,7 @@ if __name__ == "__main__":
         fmri_inj_7d_all_synced[:, :, ind], _ = brainSync(
             fmri_atlas_7d_shm, fmri_inj_7d_all[:, :, ind])
 
-    np.savez('inj_7d_synced_to_7d_shm_atlas.npz', fmri_inj_7d_all_synced=fmri_inj_7d_all_synced)
+    spio.savemat('inj_7d_synced_to_7d_shm_atlas.mat', {'fmri_inj_7d_all_synced':fmri_inj_7d_all_synced})
 
     dist2atlas_7d_inj = np.sum(
         (fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0))
@@ -314,7 +314,7 @@ if __name__ == "__main__":
         fmri_inj_28d_all_synced[:, :, ind], _ = brainSync(
             fmri_atlas_7d_shm, fmri_inj_28d_all[:, :, ind])
 
-    np.savez('inj_28d_synced_to_7d_shm_atlas.npz', fmri_inj_28d_all_synced=fmri_inj_28d_all_synced)
+    spio.savemat('inj_28d_synced_to_7d_shm_atlas.mat', {'fmri_inj_28d_all_synced':fmri_inj_28d_all_synced})
 
     dist2atlas_28d_inj = np.sum(
         (fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0))
