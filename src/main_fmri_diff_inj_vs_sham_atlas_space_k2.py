@@ -41,7 +41,7 @@ def get_roiwise_fmri(fmri, labels, label_ids):
 
 def get_fmri_diff_tpts(dir_7d, dir_28d):
 
-    atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel_k2.nii.gz'
+    atlas_fname = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel_k2.nii.gz'
 
     flist = glob(dir_7d + '/at*.nii.gz')
     label_ids = np.arange(84*2, dtype=np.int16)
@@ -157,16 +157,16 @@ def fmri_sync(fmri, Os):
 
 if __name__ == "__main__":
 
-    dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
-    dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
-    atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel_k2.nii.gz'
+    dir_7d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
+    dir_28d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
+    atlas_fname = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel_k2.nii.gz'
 ##
     fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
     np.savez('shm.npz', fmri_tdiff_inj_all=fmri_tdiff_shm_all)
 
-    dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
-    dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
+    dir_7d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
+    dir_28d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
 
     fmri_tdiff_inj_all, fmri_inj_7d_all, fmri_inj_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
