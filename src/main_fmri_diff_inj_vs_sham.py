@@ -137,7 +137,7 @@ def plot_atlas_pval(atlas_fname, roi_ids, pval, out_fname, alpha=0.05):
     pval_vol = ni.new_img_like(atlas, alpha - img)
 
     plotting.plot_stat_map(bg_img=atlas, stat_map_img=pval_vol, vmax=alpha, threshold=0.0, output_file=out_fname + '.png',
-                           draw_cross=False, annotate=True, display_mode="ortho", cut_coords=[(85-68)*1.25, (111-90)*1.25, (54-51)*1.25])
+                           draw_cross=False, annotate=True, display_mode="ortho", cut_coords=[(85-68)*1.25, (111-90)*1.25, (54-51)*1.25], cmap = 'hot')
     plt.show()
 
 
@@ -173,11 +173,11 @@ def fmri_sync(fmri, Os):
 
 if __name__ == "__main__":
 
-    dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
-    dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
+    dir_7d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
+    dir_28d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
     # dir with synced nifti files for shm group
     dir_28d_synced = '/home/ajoshi/Desktop/shm_28d_synced/'
-    atlas_fname = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
+    atlas_fname = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
 ##
     fmri_tdiff_shm_all, fmri_shm_28d_synced_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
@@ -185,8 +185,8 @@ if __name__ == "__main__":
     # saved as time x roi x subject
     spio.savemat('shm_synced_28d_to_7d.mat', {'fmri_shm_28d_synced_all':fmri_shm_28d_synced_all})
 
-    dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
-    dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
+    dir_7d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
+    dir_28d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
     # dir with synced nifti files for inj group
     dir_28d_synced = '/home/ajoshi/Desktop/inj_28d_synced/'
 
@@ -214,11 +214,11 @@ if __name__ == "__main__":
     print(np.stack((pval, pval2, pval_opp)).T)
 ##
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    pval, out_fname='pval_7d_28d', alpha=0.25)
+                    pval, out_fname='pval_7d_28d', alpha=0.05)
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    pval2, out_fname='pval2_7d_28d', alpha=0.25)
+                    pval2, out_fname='pval2_7d_28d', alpha=0.05)
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    pval_opp, out_fname='pval_opp_7d_28d', alpha=0.25)
+                    pval_opp, out_fname='pval_opp_7d_28d', alpha=0.05)
 
 ##
     # Calculate variance of 7d sham
@@ -231,7 +231,7 @@ if __name__ == "__main__":
     var_7d_shm = np.mean(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_7d_shm, out_fname='var_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_7d_shm, out_fname='var_7d_shm')#, vmax=0.0006, vmin=0.0004)
     dist2atlas_7d_shm = np.sum(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0))
 ##
@@ -245,7 +245,7 @@ if __name__ == "__main__":
     var_28d_shm = np.mean(
         (fmri_shm_28d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_shm, out_fname='var_28d_shm', vmax=0.0006, vmin=0.0004)
+                   var_28d_shm, out_fname='var_28d_shm')#, vmax=0.0006, vmin=0.0004)
 
 ##
     # Calculate variance of 7d inj
@@ -258,7 +258,7 @@ if __name__ == "__main__":
     var_7d_inj = np.mean(
         (fmri_inj_7d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_7d_inj, out_fname='var_7d_inj', vmax=0.0006, vmin=0.0004)
+                   var_7d_inj, out_fname='var_7d_inj')#, vmax=0.0006, vmin=0.0004)
 
     # Calculate variance of 28d inj
     a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_28d_all)
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     var_28d_inj = np.mean(
         (fmri_inj_28d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_inj, out_fname='var_28d_inj', vmax=0.0006, vmin=0.0004)
+                   var_28d_inj, out_fname='var_28d_inj')#, vmax=0.0006, vmin=0.0004)
 
     # Calculate variance of 28d shm wrt 7d shm grp atlas
     num_sub = fmri_shm_28d_all.shape[2]
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     var_28d_shm = np.mean(
         (fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_shm, out_fname='var_28d_shm_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_28d_shm, out_fname='var_28d_shm_7d_shm')#, vmax=0.0006, vmin=0.0004)
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_7d_all.shape[2]
@@ -304,7 +304,7 @@ if __name__ == "__main__":
     var_7d_inj = np.mean(
         (fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_7d_inj, out_fname='var_7d_inj_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_7d_inj, out_fname='var_7d_inj_7d_shm')#, vmax=0.0006, vmin=0.0004)
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_28d_all.shape[2]
@@ -321,7 +321,7 @@ if __name__ == "__main__":
     var_28d_inj = np.mean(
         (fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_fname, np.arange(1, num_rois+1),
-                   var_28d_inj, out_fname='var_28d_inj_7d_shm', vmax=0.0006, vmin=0.0004)
+                   var_28d_inj, out_fname='var_28d_inj_7d_shm')#, vmax=0.0006, vmin=0.0004)
 
 
 ##
