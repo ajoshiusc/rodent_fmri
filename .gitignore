@@ -3,6 +3,9 @@
 *.nii.gz 
 *.npz
 launch.json
+*.mat
+*.csv
+*.json
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -132,3 +135,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
