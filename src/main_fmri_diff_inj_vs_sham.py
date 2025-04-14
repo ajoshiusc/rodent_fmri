@@ -410,8 +410,8 @@ if __name__ == "__main__":
         tt_power[r] = analysis.power(cohen_d1[r], nobs1=len(dist2atlas_7d_inj[r, ]), alpha=0.05, ratio=len(
             dist2atlas_7d_shm[r, ])/len(dist2atlas_7d_shm[r, ]))
 
-    print('Please Note that colorbars should go from 0 to 2, \
-        but due to limitation of the nilearn functions, the data is scaled by a factor of 2')
+    # Please Note that colorbars should go from 0 to 2 in your figure, 
+    # but due to limitation of the nilearn functions, the data is scaled by a factor of 2
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
                     (1-tt_power), out_fname='rois_affected_tt_power', alpha=1)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
