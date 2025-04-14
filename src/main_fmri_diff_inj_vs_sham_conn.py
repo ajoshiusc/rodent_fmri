@@ -126,6 +126,9 @@ def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0
         annotate=True,
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
+        cmap="hot",
+        #colorbar=True,
+        #vmin=0,
     )
 
     plt.show()
@@ -161,6 +164,9 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname):
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
         vmax=0.001,
+        vmin=0,
+        colorbar=True,
+        cmap="hot",
     )
 
     plt.show()
@@ -268,6 +274,9 @@ if __name__ == "__main__":
     dist2atlas_7d_shm = np.sum(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
     )
+
+
+
     ##
     # Calculate variance of 28d sham
     a, Os, Costdif, TotalError = groupBrainSync(fmri_shm_28d_all)
