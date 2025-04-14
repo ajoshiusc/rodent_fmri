@@ -2,6 +2,5 @@ tqdm
 nilearn
 numpy
 matplotlib
-brainsync
 scipy
 statsmodels
