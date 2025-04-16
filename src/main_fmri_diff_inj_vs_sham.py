@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from tqdm import tqdm
 from glob import glob
 import nilearn.image as ni
@@ -11,6 +12,7 @@ from scipy.stats import ranksums, ttest_ind, ttest_rel
 import os
 from statsmodels.stats.power import TTestIndPower
 import csv
+import argparse
 
 #from surfproc import patch_color_attrib, smooth_surf_function
 
@@ -61,6 +63,7 @@ def get_roiwise_fmri(fmri, labels, label_ids):
 
 def get_fmri_diff_tpts(dir_7d, dir_28d):
     flist = glob(dir_7d + '/at*.nii.gz')
+    print(flist)
     label_ids = np.arange(83, dtype=np.int16)
     num_time = 450
 
@@ -205,25 +208,31 @@ def fmri_sync(fmri, Os):
 
 
 if __name__ == "__main__":
-
-    dir_7d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
-    dir_28d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
+    parser = argparse.ArgumentParser(
+                    prog='main_fmri_diff_inj_vs_sham.',
+                    description='comparison of subjects in rodent fMRI study')
+    parser.add_argument('--srcdir','-s', default='/deneb_disk', help='source directory for data')
+    parser.add_argument('--dstdir','-d', default='/home/ajoshi/Desktop', help='output directory')
+    args = parser.parse_args()
+    dstdir=args.dstdir
+    srcdir=args.srcdir
+    dir_7d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
+    dir_28d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
     # dir with synced nifti files for shm group
-    dir_28d_synced = '/home/ajoshi/Desktop/shm_28d_synced/'
-    atlas_labels = "/deneb_disk/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz"
-    atlas_image = "/deneb_disk/ucla_mouse_injury/ucla_injury_rats/brain.nii.gz"
-
-##
+    dir_28d_synced = f'{dstdir}/shm_28d_synced/'
+    atlas_labels = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
+    atlas_image = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/brain.nii.gz'
+##  
     fmri_tdiff_shm_all, fmri_shm_28d_synced_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
     np.savez('shm.npz', fmri_tdiff_inj_all=fmri_tdiff_shm_all)
     # saved as time x roi x subject
     spio.savemat('shm_synced_28d_to_7d.mat', {'fmri_shm_28d_synced_all':fmri_shm_28d_synced_all})
 
-    dir_7d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
-    dir_28d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
+    dir_7d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
+    dir_28d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
     # dir with synced nifti files for inj group
-    dir_28d_synced = '/home/ajoshi/Desktop/inj_28d_synced/'
+    dir_28d_synced = f'{dstdir}/inj_28d_synced/'
 
     fmri_tdiff_inj_all, fmri_inj_28d_synced_all, fmri_inj_7d_all, fmri_inj_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
