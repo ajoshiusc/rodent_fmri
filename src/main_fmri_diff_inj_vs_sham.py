@@ -150,11 +150,11 @@ def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0
         threshold=0.0,
         output_file=out_fname + "_w_brainsync.png",
         draw_cross=False,
-        annotate=True,
+        annotate=False,
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
         cmap="hot",
-        #colorbar=True,
+        colorbar=False,
         #vmin=0,
     )
 
@@ -188,12 +188,12 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname):
         threshold=0.0,
         output_file=out_fname + "_w_brainsync.png",
         draw_cross=False,
-        annotate=True,
+        annotate=False,
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
         vmax=0.001,
         vmin=0,
-        colorbar=True,
+        colorbar=False,
         cmap="hot",
     )
 
@@ -210,13 +210,13 @@ def fmri_sync(fmri, Os):
 
 if __name__ == "__main__":
     global dstdir
-    dstdir='/deneb_disk'
-    srcdir='/home/ajoshi/Desktop'
+    dstdir='/home/ajoshi/Desktop/rod_tbi'
+    srcdir='/deneb_disk'
     parser = argparse.ArgumentParser(
                     prog='main_fmri_diff_inj_vs_sham.py',
                     description='comparison of subjects in rodent fMRI study')
-    parser.add_argument('--srcdir','-s', default=dstdir, help='source directory for data')
-    parser.add_argument('--dstdir','-d', default=srcdir, help='output directory')
+    parser.add_argument('--srcdir','-s', default=srcdir, help='source directory for data')
+    parser.add_argument('--dstdir','-d', default=dstdir, help='output directory')
     args = parser.parse_args()
     dstdir=os.path.realpath(args.dstdir)
     srcdir=os.path.realpath(args.srcdir)

@@ -123,11 +123,11 @@ def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0
         threshold=0.0,
         output_file=out_fname + "_w_conn.png",
         draw_cross=False,
-        annotate=True,
+        annotate=False,
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
         cmap="hot",
-        #colorbar=True,
+        colorbar=False,
         #vmin=0,
     )
 
@@ -160,12 +160,12 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname):
         threshold=0.0,
         output_file=out_fname + "_w_conn.png",
         draw_cross=False,
-        annotate=True,
+        annotate=False,
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
         vmax=0.001,
         vmin=0,
-        colorbar=True,
+        colorbar=False,
         cmap="hot",
     )
 
