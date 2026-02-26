@@ -1,6 +1,7 @@
 from logging import error
 from scipy import io as spio
 from scipy.stats import ranksums, ttest_ind, ttest_rel
+from statsmodels.stats.multitest import fdrcorrection
 import os
 import sys
 sys.path.append('/ImagePTE1/ajoshi/code_farm/bfp/src/BrainSync')
@@ -173,6 +174,10 @@ if __name__ == "__main__":
             fmri_tdiff_inj_all[r, ], fmri_tdiff_shm_all[r, ], alternative='less', equal_var=False)
         _, pval_opp[r] = ttest_ind(
             fmri_tdiff_inj_all[r, ], fmri_tdiff_shm_all[r, ], alternative='greater', equal_var=False)
+
+    _, pval = fdrcorrection(pval, alpha=0.05)
+    _, pval2 = fdrcorrection(pval2, alpha=0.05)
+    _, pval_opp = fdrcorrection(pval_opp, alpha=0.05)
 
     np.savez('pval.npz', pval2=pval2, pval=pval, pval_opp=pval_opp)
     print(np.stack((pval, pval2, pval_opp)).T)

@@ -1,6 +1,7 @@
 from logging import error
 from scipy import io as spio
 from scipy.stats import ranksums, ttest_ind, ttest_rel
+from statsmodels.stats.multitest import fdrcorrection
 import os
 from brainsync import normalizeData, brainSync, groupBrainSync
 import matplotlib.pyplot as plt
@@ -227,6 +228,10 @@ if __name__ == "__main__":
             equal_var=False,
         )
 
+    _, pval = fdrcorrection(pval, alpha=0.05)
+    _, pval2 = fdrcorrection(pval2, alpha=0.05)
+    _, pval_opp = fdrcorrection(pval_opp, alpha=0.05)
+
     np.savez("pval.npz", pval2=pval2, pval=pval, pval_opp=pval_opp)
     print(np.stack((pval, pval2, pval_opp)).T)
     ##
@@ -421,6 +426,10 @@ if __name__ == "__main__":
         _, pval3[r] = ttest_rel(
             dist2atlas_7d_inj[r,], dist2atlas_28d_inj[r,], alternative="less"
         )
+
+    _, pval = fdrcorrection(pval, alpha=0.05)
+    _, pval2 = fdrcorrection(pval2, alpha=0.05)
+    _, pval3 = fdrcorrection(pval3, alpha=0.05)
 
     plot_atlas_pval(
         atlas_image,

@@ -8,6 +8,7 @@ from brainsync import normalizeData, brainSync, groupBrainSync
 from logging import error
 from scipy import io as spio
 from scipy.stats import ranksums, ttest_ind, ttest_rel
+from statsmodels.stats.multitest import fdrcorrection
 import os
 from statsmodels.stats.power import TTestIndPower, FTestPower
 import scipy.stats as ss
@@ -285,6 +286,8 @@ if __name__ == "__main__":
         #_, pval[r] = ttest_ind(dist2atlas_7d_inj[r, ], dist2atlas_7d_shm[r, ], alternative='greater', equal_var=False)
         #_, pval2[r] = ttest_rel(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ], alternative='greater')
         #_, pval3[r] = ttest_rel(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ], alternative='less')
+
+    _, pval = fdrcorrection(pval, alpha=0.05)
 
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
                     pval, out_fname='rois_affected_ftest', alpha=0.05)
