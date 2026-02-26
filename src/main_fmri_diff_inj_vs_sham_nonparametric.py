@@ -6,15 +6,12 @@ import numpy as np
 from nilearn import plotting
 import matplotlib.pyplot as plt
 from brainsync import normalizeData, brainSync, groupBrainSync
-from logging import error
 from scipy import io as spio
-from scipy.stats import ranksums, mannwhitneyu, wilcoxon
-import os
-from statsmodels.stats.power import TTestIndPower
+from scipy.stats import mannwhitneyu, wilcoxon
 from scipy.stats import rankdata
+import os
 import csv
 import argparse
-import os
 
 #from surfproc import patch_color_attrib, smooth_surf_function
 
@@ -33,7 +30,6 @@ def wilcoxon_effect_size(x, y):
     d = d[d != 0]
     if len(d) == 0:
         return 0.0
-    from scipy.stats import rankdata
     ranks = rankdata(np.abs(d))
     pos_ranks = np.sum(ranks[d > 0])
     neg_ranks = np.sum(ranks[d < 0])
@@ -43,7 +39,6 @@ def wilcoxon_effect_size(x, y):
 def nonparametric_power_ind(x, y, alpha=0.05, n_sim=1000):
     n_x, n_y = len(x), len(y)
     sig_count = 0
-    from scipy.stats import mannwhitneyu
     for _ in range(n_sim):
         x_sim = np.random.choice(x, size=n_x, replace=True)
         y_sim = np.random.choice(y, size=n_y, replace=True)
@@ -61,13 +56,11 @@ def save_roiwise_fmri(data, origfmrifile, outfmrifile, labelsfile, label_ids):
 
     labels = ni.load_img(labelsfile).get_fdata()
     fmri = ni.load_img(origfmrifile).get_fdata()
-    num_time = fmri.shape[3]
-    num_rois = len(label_ids)
     rtseries = np.zeros(fmri.shape)
 
     # Copy the mean synced time series to each ROI
-    for i, id in enumerate(label_ids):
-        rtseries[labels == id, :] = data[:, i]
+    for i, roi_id in enumerate(label_ids):
+        rtseries[labels == roi_id, :] = data[:, i]
 
     nii = ni.new_img_like(origfmrifile, rtseries)
 
@@ -82,8 +75,8 @@ def get_roiwise_fmri(fmri, labels, label_ids):
     num_rois = len(label_ids)
     rtseries = np.zeros((num_time, num_rois))
 
-    for i, id in enumerate(label_ids):
-        rtseries[:, i] = np.mean(fmri[labels == id, :], axis=0)
+    for i, roi_id in enumerate(label_ids):
+        rtseries[:, i] = np.mean(fmri[labels == roi_id, :], axis=0)
 
     rtseries_norm, _, _ = normalizeData(rtseries)
 
@@ -105,7 +98,7 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
 # Get a list of subjects
     sublist = list()
     for f in flist:
-        pth, fname = os.path.split(f)
+        _, fname = os.path.split(f)
         sublist.append(fname[6:-7])  # 26
 
     fmri_roiwise_7d_all = np.zeros([num_time, num_rois, num_sub])
@@ -122,9 +115,11 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
         sub_28d = sub_28d.replace('std_07', 'std_28')
 
         f = glob(dir_28d + '/' + sub[:2] + '*.nii.gz')
-        d, s = os.path.split(f[0])
         if len(f) != 1:
-            error('error in 28th day timepoint files for ' + s)
+            raise FileNotFoundError(
+                f'Expected exactly one 28d file for subject prefix {sub[:2]}, found {len(f)}')
+
+        _, s = os.path.split(f[0])
 
         sub_28d = s[:-7]
 
@@ -237,7 +232,6 @@ def fmri_sync(fmri, Os):
 
 
 if __name__ == "__main__":
-    global dstdir
     dstdir='/home/ajoshi/Desktop/rod_tbi'
     srcdir='/deneb_disk'
     parser = argparse.ArgumentParser(
@@ -442,7 +436,7 @@ if __name__ == "__main__":
                   "pval_get_better", "pval_get_worse"]
 
     roiIDs = np.arange(1, 83)
-    with open(f'{dstdir}/rois_affected_rois_get_better_rois_get_worse_pvalues_nonparametric.csv', 'w') as outcsv:
+    with open(f'{dstdir}/rois_affected_rois_get_better_rois_get_worse_pvalues_nonparametric.csv', 'w', encoding='utf-8', newline='') as outcsv:
         writer = csv.DictWriter(outcsv, fieldnames=fieldnames)
         writer.writeheader()
         for i, roiid in enumerate(roiIDs):
