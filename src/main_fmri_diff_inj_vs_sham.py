@@ -202,10 +202,11 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname):
 
 def fmri_sync(fmri, Os):
     """Sync gmri data using given Os"""
+    fmri_synced = np.zeros_like(fmri)
     for j in range(fmri.shape[2]):
-        fmri[:, :, j] = np.dot(Os[:, :, j], fmri[:, :, j])
+        fmri_synced[:, :, j] = np.dot(Os[:, :, j], fmri[:, :, j])
 
-    return fmri
+    return fmri_synced
 
 
 if __name__ == "__main__":
@@ -259,15 +260,20 @@ if __name__ == "__main__":
         _, pval_opp[r] = ttest_ind(
             fmri_tdiff_inj_all[r, ], fmri_tdiff_shm_all[r, ], alternative='greater', equal_var=False)
 
-    np.savez(f'{dstdir}/pval.npz', pval2=pval2, pval=pval, pval_opp=pval_opp)
-    print(np.stack((pval, pval2, pval_opp)).T)
+    from statsmodels.stats.multitest import fdrcorrection
+    _, pval_fdr = fdrcorrection(pval, alpha=0.05)
+    _, pval2_fdr = fdrcorrection(pval2, alpha=0.05)
+    _, pval_opp_fdr = fdrcorrection(pval_opp, alpha=0.05)
+
+    np.savez(f'{dstdir}/pval.npz', pval2=pval2_fdr, pval=pval_fdr, pval_opp=pval_opp_fdr)
+    print(np.stack((pval_fdr, pval2_fdr, pval_opp_fdr)).T)
 ##
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval, out_fname=f'{dstdir}/pval_7d_28d', alpha=0.05)
+                    pval_fdr, out_fname=f'{dstdir}/pval_7d_28d', alpha=0.05)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval2, out_fname=f'{dstdir}/pval2_7d_28d', alpha=0.05)
+                    pval2_fdr, out_fname=f'{dstdir}/pval2_7d_28d', alpha=0.05)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval_opp, out_fname=f'{dstdir}/pval_opp_7d_28d', alpha=0.05)
+                    pval_opp_fdr, out_fname=f'{dstdir}/pval_opp_7d_28d', alpha=0.05)
 
 ##
     # Calculate variance of 7d sham
@@ -378,6 +384,8 @@ if __name__ == "__main__":
 # Which ROIs get better: 7d inj vs 28d injury
 # Which ROIs get worse in TBI: 7d inj vs 28d injury
 
+    from statsmodels.stats.multitest import fdrcorrection
+    
     pval = np.zeros(num_rois)
     pval2 = np.zeros(num_rois)
     pval3 = np.zeros(num_rois)
@@ -390,12 +398,17 @@ if __name__ == "__main__":
         _, pval3[r] = ttest_rel(dist2atlas_7d_inj[r, ],
                                 dist2atlas_28d_inj[r, ], alternative='less')
 
+    # Apply FDR correction
+    _, pval_fdr = fdrcorrection(pval, alpha=0.05)
+    _, pval2_fdr = fdrcorrection(pval2, alpha=0.05)
+    _, pval3_fdr = fdrcorrection(pval3, alpha=0.05)
+
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval, out_fname=f'{dstdir}/rois_affected', alpha=0.05)
+                    pval_fdr, out_fname=f'{dstdir}/rois_affected', alpha=0.05)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval2, out_fname=f'{dstdir}/rois_get_better', alpha=0.05)
+                    pval2_fdr, out_fname=f'{dstdir}/rois_get_better', alpha=0.05)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval3, out_fname=f'{dstdir}/rois_get_worse', alpha=0.05)
+                    pval3_fdr, out_fname=f'{dstdir}/rois_get_worse', alpha=0.05)
 
     # Write the p values to csv file
     fieldnames = ["ROI ID", "pval_affected",
@@ -406,8 +419,8 @@ if __name__ == "__main__":
         writer = csv.DictWriter(outcsv, fieldnames=fieldnames)
         writer.writeheader()
         for i, roiid in enumerate(roiIDs):
-            writer.writerow({'ROI ID': roiIDs[i], "pval_affected": pval[i],
-                            "pval_get_better": pval2[i], "pval_get_worse": pval3[i]})
+            writer.writerow({'ROI ID': roiIDs[i], "pval_affected": pval_fdr[i],
+                            "pval_get_better": pval2_fdr[i], "pval_get_worse": pval3_fdr[i]})
 
 
 # Cohen's d
@@ -419,7 +432,7 @@ if __name__ == "__main__":
     for r in tqdm(range(num_rois)):
         cohen_d1[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_7d_shm[r, ])
         cohen_d2[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ])
-        cohen_d3[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ])
+        cohen_d3[r] = cohen_d(dist2atlas_28d_inj[r, ], dist2atlas_7d_inj[r, ])
         analysis = TTestIndPower()
         tt_power[r] = analysis.power(cohen_d1[r], nobs1=len(dist2atlas_7d_inj[r, ]), alpha=0.05, ratio=len(
             dist2atlas_7d_shm[r, ])/len(dist2atlas_7d_shm[r, ]))
@@ -431,8 +444,8 @@ if __name__ == "__main__":
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
                     (2-np.abs(cohen_d1))/2, out_fname=f'{dstdir}/rois_affected_cohen_d', alpha=1)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    (2-np.abs(cohen_d2))/2, out_fname=f'{dstdir}/rois_get_better_cohen_d', alpha=1)
+                    (2-cohen_d2)/2, out_fname=f'{dstdir}/rois_get_better_cohen_d', alpha=1)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    (2-np.abs(cohen_d3))/2, out_fname=f'{dstdir}/rois_get_worse_cohen_d', alpha=1)
+                    (2-cohen_d3)/2, out_fname=f'{dstdir}/rois_get_worse_cohen_d', alpha=1)
 
     # input('press any key')

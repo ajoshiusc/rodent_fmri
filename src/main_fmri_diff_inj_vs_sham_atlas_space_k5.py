@@ -149,10 +149,11 @@ def plot_atlas_var(atlas_fname, roi_ids, roi_var, out_fname):
 
 def fmri_sync(fmri, Os):
     """Sync gmri data using given Os"""
+    fmri_synced = np.zeros_like(fmri)
     for j in range(fmri.shape[2]):
-        fmri[:, :, j] = np.dot(Os[:, :, j], fmri[:, :, j])
+        fmri_synced[:, :, j] = np.dot(Os[:, :, j], fmri[:, :, j])
 
-    return fmri
+    return fmri_synced
 
 
 if __name__ == "__main__":
@@ -163,7 +164,7 @@ if __name__ == "__main__":
 ##
     fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
-    np.savez('shm.npz', fmri_tdiff_inj_all=fmri_tdiff_shm_all)
+    np.savez('shm.npz', fmri_tdiff_shm_all=fmri_tdiff_shm_all)
 
     dir_7d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
     dir_28d = '/big_disk/ajoshi/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
@@ -314,7 +315,7 @@ if __name__ == "__main__":
     for r in tqdm(range(num_rois)):
         cohen_d1[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_7d_shm[r, ])
         cohen_d2[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ])
-        cohen_d3[r] = cohen_d(dist2atlas_7d_inj[r, ], dist2atlas_28d_inj[r, ])
+        cohen_d3[r] = cohen_d(dist2atlas_28d_inj[r, ], dist2atlas_7d_inj[r, ])
         analysis = TTestIndPower()
         tt_power[r] = analysis.power(cohen_d1[r], nobs1=len(dist2atlas_7d_inj[r, ]), alpha=0.05, ratio=len(dist2atlas_7d_shm[r, ])/len(dist2atlas_7d_shm[r, ]))
 
@@ -323,8 +324,8 @@ if __name__ == "__main__":
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
                     (2-np.abs(cohen_d1))/2, out_fname='rois_affected_cohen_d', alpha=1)
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    (2-np.abs(cohen_d2))/2, out_fname='rois_get_better_cohen_d', alpha=1)
+                    (2-cohen_d2)/2, out_fname='rois_get_better_cohen_d', alpha=1)
     plot_atlas_pval(atlas_fname, np.arange(1, num_rois+1),
-                    (2-np.abs(cohen_d3))/2, out_fname='rois_get_worse_cohen_d', alpha=1)
+                    (2-cohen_d3)/2, out_fname='rois_get_worse_cohen_d', alpha=1)
 
     input('press any key')

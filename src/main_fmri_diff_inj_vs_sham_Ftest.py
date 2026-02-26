@@ -145,10 +145,11 @@ def plot_atlas_var(atlas_fname, roi_ids, roi_var, out_fname, vmax=0.001, vmin=0)
 
 def fmri_sync(fmri, Os):
     """Sync gmri data using given Os"""
+    fmri_synced = np.zeros_like(fmri)
     for j in range(fmri.shape[2]):
-        fmri[:, :, j] = np.dot(Os[:, :, j], fmri[:, :, j])
+        fmri_synced[:, :, j] = np.dot(Os[:, :, j], fmri[:, :, j])
 
-    return fmri
+    return fmri_synced
 
 
 if __name__ == "__main__":
@@ -161,7 +162,7 @@ if __name__ == "__main__":
 ##
     fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
-    np.savez('shm.npz', fmri_tdiff_inj_all=fmri_tdiff_shm_all)
+    np.savez('shm.npz', fmri_tdiff_shm_all=fmri_tdiff_shm_all)
 
     dir_7d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
     dir_28d = '/deneb_disk/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
