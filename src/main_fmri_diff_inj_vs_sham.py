@@ -136,7 +136,7 @@ def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0
 
     pval_vol = ni.new_img_like(atlas, img)
 
-    pval_vol.to_filename(out_fname + "_conn.nii.gz")
+    pval_vol.to_filename(out_fname + "_brainsync.nii.gz")
 
     img[img > alpha] = alpha
     pval_vol = ni.new_img_like(atlas, alpha - img)
@@ -230,7 +230,7 @@ if __name__ == "__main__":
 ##  
     fmri_tdiff_shm_all, fmri_shm_28d_synced_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
-    np.savez(f'{dstdir}/shm.npz', fmri_tdiff_inj_all=fmri_tdiff_shm_all)
+    np.savez(f'{dstdir}/shm.npz', fmri_tdiff_shm_all=fmri_tdiff_shm_all)
     # saved as time x roi x subject
     spio.savemat(f'{dstdir}/shm_synced_28d_to_7d.mat', {'fmri_shm_28d_synced_all':fmri_shm_28d_synced_all})
 
