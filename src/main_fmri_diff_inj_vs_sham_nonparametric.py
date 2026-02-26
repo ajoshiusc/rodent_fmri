@@ -431,18 +431,18 @@ if __name__ == "__main__":
     _, pval3_fdr = fdrcorrection(pval3, alpha=0.05)
 
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval_fdr, out_fname=f'{dstdir}/rois_affected', alpha=0.05)
+                    pval_fdr, out_fname=f'{dstdir}/rois_affected_nonparametric', alpha=0.05)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval2_fdr, out_fname=f'{dstdir}/rois_get_better', alpha=0.05)
+                    pval2_fdr, out_fname=f'{dstdir}/rois_get_better_nonparametric', alpha=0.05)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval3_fdr, out_fname=f'{dstdir}/rois_get_worse', alpha=0.05)
+                    pval3_fdr, out_fname=f'{dstdir}/rois_get_worse_nonparametric', alpha=0.05)
 
     # Write the p values to csv file
     fieldnames = ["ROI ID", "pval_affected",
                   "pval_get_better", "pval_get_worse"]
 
     roiIDs = np.arange(1, 83)
-    with open(f'{dstdir}/rois_affected_rois_get_better_rois_get_worse_pvalues.csv', 'w') as outcsv:
+    with open(f'{dstdir}/rois_affected_rois_get_better_rois_get_worse_pvalues_nonparametric.csv', 'w') as outcsv:
         writer = csv.DictWriter(outcsv, fieldnames=fieldnames)
         writer.writeheader()
         for i, roiid in enumerate(roiIDs):
@@ -465,12 +465,12 @@ if __name__ == "__main__":
     # Please Note that colorbars should go from 0 to 2 in your figure, 
     # but due to limitation of the nilearn functions, the data is scaled by a factor of 2
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    (1-np_power), out_fname=f'{dstdir}/rois_affected_np_power', alpha=1)
+                    (1-np_power), out_fname=f'{dstdir}/rois_affected_np_power_nonparametric', alpha=1)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    (2-np.abs(effect_size1))/2, out_fname=f'{dstdir}/rois_affected_effect_size', alpha=1)
+                    (2-np.abs(effect_size1))/2, out_fname=f'{dstdir}/rois_affected_effect_size_nonparametric', alpha=1)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    (2-np.abs(effect_size2))/2, out_fname=f'{dstdir}/rois_get_better_effect_size', alpha=1)
+                    (2-np.abs(effect_size2))/2, out_fname=f'{dstdir}/rois_get_better_effect_size_nonparametric', alpha=1)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    (2-np.abs(effect_size3))/2, out_fname=f'{dstdir}/rois_get_worse_effect_size', alpha=1)
+                    (2-np.abs(effect_size3))/2, out_fname=f'{dstdir}/rois_get_worse_effect_size_nonparametric', alpha=1)
 
     # input('press any key')
