@@ -3,6 +3,7 @@ from scipy import io as spio
 from scipy.stats import ranksums, ttest_ind, ttest_rel
 from statsmodels.stats.multitest import fdrcorrection
 import os
+import argparse
 from brainsync import normalizeData, brainSync, groupBrainSync
 import matplotlib.pyplot as plt
 from nilearn import plotting
@@ -183,25 +184,35 @@ def fmri_sync(fmri, Os):
 
 
 if __name__ == "__main__":
-
-    dir_7d = "/deneb_disk/ucla_mouse_injury/ucla_injury_rats/shm_07d/"
-    dir_28d = "/deneb_disk/ucla_mouse_injury/ucla_injury_rats/shm_28d/"
-    atlas_labels = "/deneb_disk/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz"
-    atlas_image = "/deneb_disk/ucla_mouse_injury/ucla_injury_rats/brain.nii.gz"
+    dstdir='/home/ajoshi/Desktop/rod_tbi/conn_results'
+    srcdir='/deneb_disk'
+    parser = argparse.ArgumentParser(
+                    prog='main_fmri_diff_inj_vs_sham_conn.py',
+                    description='comparison of subjects in rodent fMRI study using parametric tests and brain sync')
+    parser.add_argument('--srcdir','-s', default=srcdir, help='source directory for data')
+    parser.add_argument('--dstdir','-d', default=dstdir, help='output directory')
+    args = parser.parse_args()
+    dstdir=os.path.realpath(args.dstdir)
+    srcdir=os.path.realpath(args.srcdir)
+    os.makedirs(dstdir, exist_ok=True)
+    dir_7d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
+    dir_28d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
+    atlas_labels = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
+    atlas_image = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/brain.nii.gz'
 
     ##
     fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d
     )
-    np.savez("shm.npz", fmri_tdiff_shm_all=fmri_tdiff_shm_all)
+    np.savez(f"{dstdir}/shm.npz", fmri_tdiff_shm_all=fmri_tdiff_shm_all)
 
-    dir_7d = "/deneb_disk/ucla_mouse_injury/ucla_injury_rats/inj_07d/"
-    dir_28d = "/deneb_disk/ucla_mouse_injury/ucla_injury_rats/inj_28d/"
+    dir_7d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
+    dir_28d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
 
     fmri_tdiff_inj_all, fmri_inj_7d_all, fmri_inj_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d
     )
-    np.savez("inj.npz", fmri_tdiff_inj_all=fmri_tdiff_inj_all)
+    np.savez(f"{dstdir}/inj.npz", fmri_tdiff_inj_all=fmri_tdiff_inj_all)
 
     num_rois = fmri_tdiff_inj_all.shape[0]
     pval2 = np.zeros(num_rois)
@@ -232,7 +243,7 @@ if __name__ == "__main__":
     _, pval2 = fdrcorrection(pval2, alpha=0.05)
     _, pval_opp = fdrcorrection(pval_opp, alpha=0.05)
 
-    np.savez("pval.npz", pval2=pval2, pval=pval, pval_opp=pval_opp)
+    np.savez(f"{dstdir}/pval.npz", pval2=pval2, pval=pval, pval_opp=pval_opp)
     print(np.stack((pval, pval2, pval_opp)).T)
     ##
     ##
@@ -241,7 +252,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         pval,
-        out_fname="pval_7d_28d",
+        out_fname=f"{dstdir}/pval_7d_28d",
         alpha=0.25,
     )
     plot_atlas_pval(
@@ -249,7 +260,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         pval2,
-        out_fname="pval2_7d_28d",
+        out_fname=f"{dstdir}/pval2_7d_28d",
         alpha=0.25,
     )
     plot_atlas_pval(
@@ -257,7 +268,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         pval_opp,
-        out_fname="pval_opp_7d_28d",
+        out_fname=f"{dstdir}/pval_opp_7d_28d",
         alpha=0.25,
     )
 
@@ -275,7 +286,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         var_7d_shm,
-        out_fname="var_7d_shm",
+        out_fname=f"{dstdir}/var_7d_shm",
     )
     dist2atlas_7d_shm = np.sum(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
@@ -297,7 +308,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         var_28d_shm,
-        out_fname="var_28d_shm",
+        out_fname=f"{dstdir}/var_28d_shm",
     )
 
     ##
@@ -314,7 +325,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         var_7d_inj,
-        out_fname="var_7d_inj",
+        out_fname=f"{dstdir}/var_7d_inj",
     )
 
     # Calculate variance of 28d inj
@@ -330,7 +341,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         var_28d_inj,
-        out_fname="var_28d_inj",
+        out_fname=f"{dstdir}/var_28d_inj",
     )
 
     # Calculate variance of 28d shm wrt 7d shm grp atlas
@@ -354,7 +365,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         var_28d_shm,
-        out_fname="var_28d_shm_7d_shm",
+        out_fname=f"{dstdir}/var_28d_shm_7d_shm",
     )
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
@@ -377,7 +388,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         var_7d_inj,
-        out_fname="var_7d_inj_7d_shm",
+        out_fname=f"{dstdir}/var_7d_inj_7d_shm",
     )
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
@@ -401,7 +412,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         var_28d_inj,
-        out_fname="var_28d_inj_7d_shm",
+        out_fname=f"{dstdir}/var_28d_inj_7d_shm",
     )
 
     ##
@@ -436,7 +447,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         pval,
-        out_fname="rois_affected",
+        out_fname=f"{dstdir}/rois_affected",
         alpha=0.05,
     )
     plot_atlas_pval(
@@ -444,7 +455,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         pval2,
-        out_fname="rois_get_better",
+        out_fname=f"{dstdir}/rois_get_better",
         alpha=0.05,
     )
     plot_atlas_pval(
@@ -452,7 +463,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         pval3,
-        out_fname="rois_get_worse",
+        out_fname=f"{dstdir}/rois_get_worse",
         alpha=0.05,
     )
 
@@ -479,7 +490,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         (1 - tt_power),
-        out_fname="rois_affected_tt_power",
+        out_fname=f"{dstdir}/rois_affected_tt_power",
         alpha=1,
     )
     plot_atlas_pval(
@@ -487,7 +498,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         (2 - np.abs(cohen_d1)) / 2,
-        out_fname="rois_affected_cohen_d",
+        out_fname=f"{dstdir}/rois_affected_cohen_d",
         alpha=1,
     )
     plot_atlas_pval(
@@ -495,7 +506,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         (2 - np.abs(cohen_d2)) / 2,
-        out_fname="rois_get_better_cohen_d",
+        out_fname=f"{dstdir}/rois_get_better_cohen_d",
         alpha=1,
     )
     plot_atlas_pval(
@@ -503,7 +514,7 @@ if __name__ == "__main__":
         atlas_labels,
         np.arange(1, num_rois + 1),
         (2 - np.abs(cohen_d3)) / 2,
-        out_fname="rois_get_worse_cohen_d",
+        out_fname=f"{dstdir}/rois_get_worse_cohen_d",
         alpha=1,
     )
 

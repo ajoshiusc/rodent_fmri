@@ -211,7 +211,7 @@ def fmri_sync(fmri, Os):
 
 if __name__ == "__main__":
     global dstdir
-    dstdir='/home/ajoshi/Desktop/rod_tbi'
+    dstdir='/home/ajoshi/Desktop/rod_tbi/brainsync_results'
     srcdir='/deneb_disk'
     parser = argparse.ArgumentParser(
                     prog='main_fmri_diff_inj_vs_sham.py',
