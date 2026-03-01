@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    font-family: sans-serif;
+  }
+html {
+  scroll-padding-top: 7rem;
+  height: auto !important;
+  padding-bottom: 80vh !important;  
+}
+.button { 
+  background-color: inherit; border: none; 
+  color: inherit; padding: 2px 2px; text-align: center; text-decoration: underline; display: inline-block;
+  font-size: inherit; margin: 0px 0px; cursor: pointer;
+}
+span {
+  display: inline-block;
+  padding-left:0px;
+  padding-right:10px;
+  margin:4px;
+}
+a{
+  color: inherit;
+}
+  header {
+  position: sticky;
+  top: 0;
+  padding-top: 10px;
+  padding-left: 5px;
+  padding-bottom: 15px;
+  background: #AAAAAA;
+  height: 5rem;  
+  z-index: 100;
+}
+h4 {
+  margin-bottom: 0;
+}
+h4 + p {
+  margin-top: 0;
+}
+.imgfig {
+  position: relative;
+  float: left;
+}
+.captioncenter {
+  position: absolute;
+  top: 8px;
+  left: 4px;
+  color: white;
+  margin-right: 80px; 
+  text-align: center;
+}
+.caption {
+  position: absolute;
+  top: 8px;
+  left: 4px;
+  color: white;
+  margin-right: 80px; 
+}
+.subcap {
+  position: absolute;
+  bottom: 8px;
+  left: 4px;
+  color: white;
+  font-size: 14px;
+  margin-right: 35px; 
+}
+</style>
+</head>
+<header>
+  <b>rodent TBI figures</b>
+  <div id="buttonbar"></div>
+  <div id="figbar"></div>
+</header>
+<body onload="populate()">
+<script>
+var root='ratTBI/v1';
+
+function changeRoot(newRoot)
+{
+  root=newRoot;
+  loadmap(colormap);
+}
+
+function loadsubfig(number,group,file)  
+{
+  var id=document.getElementById('im'+number);
+  if (id) id.src=root+'/'+group+'/'+colormap+'/'+file+'.png';
+  id=document.getElementById('cap'+number);
+  if (id) id.innerHTML=group+'/'+file+'.png';
+}
+
+function loadmap(cmap)
+{
+  colormap=cmap;
+  loadsubfig('1A','bsync','var_7d_shm_w_brainsync');
+  loadsubfig('1B','bsync','var_7d_inj_7d_shm_w_brainsync');
+  loadsubfig('1C','bsync','var_28d_shm_7d_shm_w_brainsync');
+  loadsubfig('1D','bsync','var_28d_inj_7d_shm_w_brainsync');
+
+  loadsubfig('S1A','conn','var_7d_shm_w_conn');
+  loadsubfig('S1B','conn','var_7d_inj_7d_shm_w_conn');
+  loadsubfig('S1C','conn','var_28d_shm_7d_shm_w_conn');
+  loadsubfig('S1D','conn','var_28d_inj_7d_shm_w_conn');
+
+  loadsubfig('S2A','node','var_7d_shm_w_deg');
+  loadsubfig('S2B','node','var_7d_inj_7d_shm_w_deg');
+  loadsubfig('S2C','node','var_28d_shm_7d_shm_w_deg');
+  loadsubfig('S2D','node','var_28d_inj_7d_shm_w_deg');
+
+
+  loadsubfig('2A','bsync','rois_affected_cohen_d_w_brainsync');
+  loadsubfig('2B','conn','rois_affected_cohen_d_w_conn');
+  loadsubfig('2C','node','rois_affected_cohen_d_w_deg');
+
+  loadsubfig('3A','bsync','rois_affected_tt_power_w_brainsync');
+  loadsubfig('3B','conn','rois_affected_tt_power_w_conn');
+  loadsubfig('3C','node','rois_affected_tt_power_w_deg');
+
+  loadsubfig('4A','bsync','rois_affected_w_brainsync');
+  loadsubfig('4B','conn','rois_affected_w_conn');
+  loadsubfig('4C','node','rois_affected_w_deg');
+
+  loadsubfig('5A','bsync','rois_affected_w_brainsync');
+  loadsubfig('5B','bsync','rois_get_better_w_brainsync');
+  loadsubfig('5C','bsync','rois_get_worse_w_brainsync');
+
+  loadsubfig('S3A','conn','rois_affected_w_conn');
+  loadsubfig('S3B','conn','rois_get_better_w_conn');
+  loadsubfig('S3C','conn','rois_get_worse_w_conn');
+  loadsubfig('S4A','node','rois_affected_w_deg');
+  loadsubfig('S4B','node','rois_get_better_w_deg');
+  loadsubfig('S4C','node','rois_get_worse_w_deg');
+}
+var colormap='viridis';
+function populate() {
+  colormaps=['viridis', 'plasma'];//, 'inferno', 'magma', 'cividis', 'hot', 'rainbow', 'jet'];
+  figs=['fig1','figS1','figS2','fig2','fig3','fig4','fig5','figS3','figS4'];
+  var bar="";
+  for (const c of colormaps) {
+    bar+="<button onclick=\"loadmap('"+c+"')\">"+c+"</button>"
+  }
+  bar+="<br/>";
+
+  // Add different directories here  
+  bar+="<button onclick=\"changeRoot('ratTBI/v1')\">ratTBI v1</button>";
+
+  d=document.getElementById('buttonbar');
+  d.innerHTML=bar;
+  bar=""
+  for (const f of figs) {
+    bar+="<span width=100px><a href='#"+f+"' class='button'>Fig "+f.slice(3)+"</a></span>"
+  }
+  d=document.getElementById('figbar');
+  d.innerHTML=bar;
+  loadmap(colormap);
+}
+</script>
+ 
+<div id="fig1">
+  <h4>1. BrainSync</h3>
+<div class=imgfig><div class=caption>A. Avg distance of sham 7d subjects to atlas</div><img id='im1A'><div id=cap1A class=subcap></div></div>
+<div class=imgfig><div class=caption>B. Avg distance of injured 7d subjects to atlas</div><img id='im1B'><div id=cap1B class=subcap></div></div>
+<div style='clear: both;'>
+<div class=imgfig><div class=caption>C. Avg distance of sham 28d subjects to atlas</div><img id='im1C'><div id=cap1C class=subcap></div></div>
+<div class=imgfig><div class=caption>D. Avg distance of injured 28d subjects to atlas</div><img id='im1D'><div id=cap1D class=subcap></div></div>
+<p style='clear: both;'><b>Figure 1</b>: The average BrainSync functional distances between each of the sham/TBI groups at 7/28 days and the functional group atlas, computed for each ROI.</p>
+</div>
+<br/><br/>
+<div id="figS1">
+  <h4>S1. Connectivity Profile</h3>
+<div class=imgfig><div class=caption>A. Avg distance of sham 7d subjects to atlas</div><img id='imS1A'><div id=capS1A class=subcap></div></div>
+<div class=imgfig><div class=caption>B. Avg distance of injured 7d subjects to atlas</div><img id='imS1B'><div id=capS1B class=subcap></div></div>
+<div style='clear: both;'>
+<div class=imgfig><div class=caption>C. Avg distance of sham 28d subjects to atlas</div><img id='imS1C'><div id=capS1C class=subcap></div></div>
+<div class=imgfig><div class=caption>D. Avg distance of injured 28d subjects to atlas</div><img id='imS1D'><div id=capS1D class=subcap></div></div>
+<p style='clear: both;'><b>Figure S1</b>: The average connectivity profile distances between each of the sham/TBI groups at 7/28 days and the functional group atlas, computed for each ROI.</p>
+</div>
+<br/><br/>
+<div id="figS2">
+  <h4>S2. Node Degree</h3>
+<div class=imgfig><div class=caption>A. Avg distance of sham 7d subjects to atlas</div><img id='imS2A'><div id=capS2A class=subcap></div></div>
+<div class=imgfig><div class=caption>B. Avg distance of injured 7d subjects to atlas</div><img id='imS2B'><div id=capS2B class=subcap></div></div>
+<div style='clear: both;'>
+<div class=imgfig><div class=caption>C. Avg distance of sham 28d subjects to atlas</div><img id='imS2C'><div id=capS2C class=subcap></div></div>
+<div class=imgfig><div class=caption>D. Avg distance of injured 28d subjects to atlas</div><img id='imS2D'><div id=capS2D class=subcap></div></div>
+<p style='clear: both;'><b>Figure S2</b>: The average node degree distances between each of the sham/TBI groups at 7/28 days and the functional group atlas, computed for each ROI.</p>
+</div>
+<br/><br/>
+<div id="fig2">
+<h4>2. Effect Size (Cohen's d)</h3>
+<div class=imgfig><div class=captioncenter>Brainsync</div><img id='im2A'><div id=cap2A class=subcap></div></div>
+<div class=imgfig><div class=captioncenter>Connectivity Profile</div><img id='im2B'><div id=cap2B class=subcap></div></div>
+<div class=imgfig><div class=captioncenter>Node Degree</div><img id='im2C'><div id=cap2C class=subcap></div></div>
+<p style='clear: both;'><b>Figure 2</b>: Cohen's d for functional distances computed using BrainSync, Connectivity Profile, and Node Degree.</p>
+<br/><br/>
+</div>
+<div id="fig3">
+<h4>3. Statistical Power</h4> 
+<div class=imgfig><div class=captioncenter>Brainsync</div><img id='im3A'><div id=cap3A class=subcap></div></div>
+<div class=imgfig><div class=captioncenter>Connectivity Profile</div><img id='im3B'><div id=cap3B class=subcap></div></div>
+<div class=imgfig><div class=captioncenter>Node Degree</div><img id='im3C'><div id=cap3C class=subcap></div></div>
+<p style='clear: both;'><b>Figure 3</b>: Statistical power for independent sample t-test for functional distance as the measure.</p>
+</div>
+<div id="fig4">
+<h4>4. Statistical Testing</h4> 
+<div class=imgfig><div class=captioncenter>Brainsync</div><img id='im4A'><div id=cap4A class=subcap></div></div>
+<div class=imgfig><div class=captioncenter>Connectivity Profile</div><img id='im4B'><div id=cap4B class=subcap></div></div>
+<div class=imgfig><div class=captioncenter>Node Degree</div><img id='im4C'><div id=cap4C class=subcap></div></div>
+<p style='clear: both;'><b>Figure 4</b>: Comparison of statistical testing 7-day injury vs 7-day sham.</p>
+</div>
+<br/><br/>
+<div id="fig5">
+<h4>5. Testing for differences (BrainSync)</h4> 
+<div class=imgfig><div class=caption>A. Affected ROIs<br/>7d injured vs 7d sham</div><img id='im5A'><div id=cap5A class=subcap></div></div>
+<div class=imgfig><div class=caption>B. ROIs that get better<br/>7d injured vs 28d injured</div><img id='im5B'><div id=cap5B class=subcap></div></div>
+<div class=imgfig><div class=caption>C. ROIs that get worse<br/>7d injured vs 28d injured</div><img id='im5C'><div id=cap5C class=subcap></div></div>
+<p style='clear: both;'><b>Figure 5</b>: [BrainSync] Results of the statistical testing are shown with the significant ROI color coded by their p-values: (A) the results of the t-test between the injury cohort at 7 days and sham cohort at 7 days.  (B,C) the results of one-sided paired t-test between 7 days and 28 days.</p>
+</div>
+<br/><br/>
+<div id="figS3">
+<h4>S3. Testing for differences (Connectivity Profile)</h4> 
+<div class=imgfig><div class=caption>A. Affected ROIs<br/>7d injured vs 7d sham</div><img id='imS3A'><div id=capS3A class=subcap></div></div>
+<div class=imgfig><div class=caption>B. ROIs that get better<br/>7d injured vs 28d injured</div><img id='imS3B'><div id=capS3B class=subcap></div></div>
+<div class=imgfig><div class=caption>C. ROIs that get worse<br/>7d injured vs 28d injured</div><img id='imS3C'><div id=capS3C class=subcap></div></div>
+<p style='clear: both;'><b>Figure S3</b>: [Connectivity Profile] Results of the statistical testing are shown with the significant ROI color coded by their p-values: (A) the results of the t-test between the injury cohort at 7 days and sham cohort at 7 days.  (B,C) the results of one-sided paired t-test between 7 days and 28 days.</p>
+</div>
+<br/><br/>
+<div id="figS4">
+<h4>S4. Testing for differences (Node Degree)</h4> 
+<div class=imgfig><div class=caption>A. Affected ROIs<br/>7d injured vs 7d sham</div><img id='imS4A'><div id=capS4A class=subcap></div></div>
+<div class=imgfig><div class=caption>B. ROIs that get better<br/>7d injured vs 28d injured</div><img id='imS4B'><div id=capS4B class=subcap></div></div>
+<div class=imgfig><div class=caption>C. ROIs that get worse<br/>7d injured vs 28d injured</div><img id='imS4C'><div id=capS4C class=subcap></div></div>
+<p style='clear: both;'><b>Figure S4</b>: [Node Degree] Results of the statistical testing are shown with the significant ROI color coded by their p-values: (A) the results of the t-test between the injury cohort at 7 days and sham cohort at 7 days.  (B,C) the results of one-sided paired t-test between 7 days and 28 days.</p>
+</div>
+</body>
+</html>
+
