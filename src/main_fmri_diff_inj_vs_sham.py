@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from tqdm import tqdm
 from glob import glob
 import nilearn.image as ni
@@ -212,7 +212,6 @@ def fmri_sync(fmri, Os):
 
 
 if __name__ == "__main__":
-    global dstdir
     dstdir='/home/ajoshi/Desktop/rod_tbi/brainsync_results'
     srcdir='/deneb_disk/ucla_mouse_injury'
     parser = argparse.ArgumentParser(description='comparison of subjects in rodent fMRI study')
@@ -274,11 +273,14 @@ if __name__ == "__main__":
     print(np.stack((pval_fdr, pval2_fdr, pval_opp_fdr)).T)
 ##
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval_fdr, out_fname=f'{dstdir}/pval_7d_28d', alpha=0.05)
+                    pval_fdr, out_fname=f'{dstdir}/pval_7d_28d', alpha=0.05,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval2_fdr, out_fname=f'{dstdir}/pval2_7d_28d', alpha=0.05)
+                    pval2_fdr, out_fname=f'{dstdir}/pval2_7d_28d', alpha=0.05,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval_opp_fdr, out_fname=f'{dstdir}/pval_opp_7d_28d', alpha=0.05)
+                    pval_opp_fdr, out_fname=f'{dstdir}/pval_opp_7d_28d', alpha=0.05,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
 
 ##
     # Calculate variance of 7d sham
