@@ -499,20 +499,20 @@ if __name__ == "__main__":
     effect_size1 = np.zeros(num_rois)
     effect_size2 = np.zeros(num_rois)
     effect_size3 = np.zeros(num_rois)
-    tt_power = np.zeros(num_rois)
+    np_power = np.zeros(num_rois)
 
     for r in tqdm(range(num_rois)):
         effect_size1[r] = cliffs_delta(dist2atlas_7d_inj[r,], dist2atlas_7d_shm[r,])
         effect_size2[r] = wilcoxon_effect_size(dist2atlas_7d_inj[r,], dist2atlas_28d_inj[r,])
         effect_size3[r] = wilcoxon_effect_size(dist2atlas_28d_inj[r,], dist2atlas_7d_inj[r,])
-        tt_power[r] = nonparametric_power_ind(dist2atlas_7d_inj[r,], dist2atlas_7d_shm[r,])
+        np_power[r] = nonparametric_power_ind(dist2atlas_7d_inj[r,], dist2atlas_7d_shm[r,])
 
     plot_atlas_pval(
         atlas_image,
         atlas_labels,
         np.arange(1, num_rois + 1),
-        (1 - tt_power),
-        out_fname=f"{dstdir}/rois_affected_tt_power_nonparametric",
+        (1 - np_power),
+        out_fname=f"{dstdir}/rois_affected_np_power_nonparametric",
         alpha=1,
         cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
