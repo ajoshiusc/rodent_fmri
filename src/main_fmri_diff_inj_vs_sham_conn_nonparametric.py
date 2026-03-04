@@ -208,7 +208,7 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
 if __name__ == "__main__":
     dstdir='/home/ajoshi/Desktop/rod_tbi/nonparametric_conn_results'
     srcdir='/deneb_disk/ucla_mouse_injury'
-    parser = argparse.ArgumentParser(description='comparison of subjects in rodent fMRI study using nonparametric tests and brain sync')
+    parser = argparse.ArgumentParser(description='comparison of subjects in rodent fMRI study using nonparametric tests')
     parser.add_argument('--srcdir','-s', default=srcdir, help='source directory for data')
     parser.add_argument('--dstdir','-d', default=dstdir, help='output directory')
     parser.add_argument('--colorbar','-cb', action="store_true", help="include colorbar")

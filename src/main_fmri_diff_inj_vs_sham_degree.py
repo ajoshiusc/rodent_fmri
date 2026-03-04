@@ -6,7 +6,7 @@ from scipy.stats import ranksums, ttest_ind, ttest_rel
 from statsmodels.stats.multitest import fdrcorrection
 import os
 import argparse
-from brainsync import normalizeData, brainSync, groupBrainSync
+from brainsync import normalizeData
 import matplotlib.pyplot as plt
 from nilearn import plotting
 import numpy as np
@@ -175,15 +175,6 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
     plt.show()
 
 
-def fmri_sync(fmri, Os):
-    """Sync gmri data using given Os"""
-    fmri_synced = np.zeros_like(fmri)
-    for j in range(fmri.shape[2]):
-        fmri_synced[:, :, j] = np.dot(Os[:, :, j], fmri[:, :, j])
-
-    return fmri_synced
-
-
 if __name__ == "__main__":
     dstdir='/home/ajoshi/Desktop/rod_tbi/degree_results'
     srcdir='/deneb_disk/ucla_mouse_injury'
@@ -281,8 +272,7 @@ if __name__ == "__main__":
 
     ##
     # Calculate variance of 7d sham
-    a, Os, Costdif, TotalError = groupBrainSync(fmri_shm_7d_all)
-    fmri_shm_7d_all_synced = fmri_sync(fmri_shm_7d_all, Os)
+    fmri_shm_7d_all_synced = fmri_shm_7d_all
     fmri_atlas_7d_shm = np.mean(fmri_shm_7d_all_synced, axis=2)
     var_7d_shm = np.mean(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0, 2)
@@ -302,8 +292,7 @@ if __name__ == "__main__":
     )
     ##
     # Calculate variance of 28d sham
-    a, Os, Costdif, TotalError = groupBrainSync(fmri_shm_28d_all)
-    fmri_shm_28d_all_synced = fmri_sync(fmri_shm_28d_all, Os)
+    fmri_shm_28d_all_synced = fmri_shm_28d_all
     fmri_atlas = np.mean(fmri_shm_28d_all_synced, axis=2)
     var_28d_shm = np.mean(
         (fmri_shm_28d_all_synced - fmri_atlas[:, :, np.newaxis]) ** 2, axis=(0, 2)
@@ -326,8 +315,7 @@ if __name__ == "__main__":
 
     ##
     # Calculate variance of 7d inj
-    a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_7d_all)
-    fmri_inj_7d_all_synced = fmri_sync(fmri_inj_7d_all, Os)
+    fmri_inj_7d_all_synced = fmri_inj_7d_all
     fmri_atlas = np.mean(fmri_inj_7d_all_synced, axis=2)
     var_7d_inj = np.mean(
         (fmri_inj_7d_all_synced - fmri_atlas[:, :, np.newaxis]) ** 2, axis=(0, 2)
@@ -345,8 +333,7 @@ if __name__ == "__main__":
         vmax=args.vmax
     )
     # Calculate variance of 28d inj
-    a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_28d_all)
-    fmri_inj_28d_all_synced = fmri_sync(fmri_inj_28d_all, Os)
+    fmri_inj_28d_all_synced = fmri_inj_28d_all
     fmri_atlas = np.mean(fmri_inj_28d_all_synced, axis=2)
     var_28d_inj = np.mean(
         (fmri_inj_28d_all_synced - fmri_atlas[:, :, np.newaxis]) ** 2, axis=(0, 2)
@@ -368,12 +355,7 @@ if __name__ == "__main__":
 
     # Calculate variance of 28d shm wrt 7d shm grp atlas
     num_sub = fmri_shm_28d_all.shape[2]
-    fmri_shm_28d_all_synced = np.zeros(fmri_shm_28d_all.shape)
-
-    for ind in range(num_sub):
-        fmri_shm_28d_all_synced[:, :, ind], _ = brainSync(
-            fmri_atlas_7d_shm, fmri_shm_28d_all[:, :, ind]
-        )
+    fmri_shm_28d_all_synced = fmri_shm_28d_all
 
     dist2atlas_28d_shm = np.sum(
         (fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
@@ -394,12 +376,7 @@ if __name__ == "__main__":
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_7d_all.shape[2]
-    fmri_inj_7d_all_synced = np.zeros(fmri_inj_7d_all.shape)
-
-    for ind in range(num_sub):
-        fmri_inj_7d_all_synced[:, :, ind], _ = brainSync(
-            fmri_atlas_7d_shm, fmri_inj_7d_all[:, :, ind]
-        )
+    fmri_inj_7d_all_synced = fmri_inj_7d_all
 
     dist2atlas_7d_inj = np.sum(
         (fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
@@ -419,12 +396,7 @@ if __name__ == "__main__":
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_28d_all.shape[2]
-    fmri_inj_28d_all_synced = np.zeros(fmri_inj_28d_all.shape)
-
-    for ind in range(num_sub):
-        fmri_inj_28d_all_synced[:, :, ind], _ = brainSync(
-            fmri_atlas_7d_shm, fmri_inj_28d_all[:, :, ind]
-        )
+    fmri_inj_28d_all_synced = fmri_inj_28d_all
 
     dist2atlas_28d_inj = np.sum(
         (fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
