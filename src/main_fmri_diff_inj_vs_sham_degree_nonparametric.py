@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from logging import error
 from scipy import io as spio
 from scipy.stats import mannwhitneyu, wilcoxon
@@ -123,7 +125,8 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
     return fmri_tdiff_all, fmri_roiwise_7d_all, fmri_roiwise_28d_all
 
 
-def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0.05):
+def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0.05,
+                    cmap='hot',annotate=False,colorbar=False):
 
     atlas = ni.load_img(atlas_labels)
     atlas_img = atlas.get_fdata()
@@ -149,17 +152,18 @@ def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0
         threshold=0.0,
         output_file=out_fname + "_w_deg.png",
         draw_cross=False,
-        annotate=False,
+        annotate=annotate,
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
-        cmap="hot",
-        colorbar=False,
+        cmap=cmap,
+        colorbar=colorbar,
     )
 
     plt.show()
 
 
-def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname):
+def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
+                    cmap='hot',annotate=False,colorbar=False, vmax=20):
     """Plot variance computed for each roi"""
 
     atlas = ni.load_img(atlas_labels)
@@ -185,13 +189,13 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname):
         threshold=0.0,
         output_file=out_fname + "_w_deg.png",
         draw_cross=False,
-        annotate=False,
+        annotate=annotate,
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
-        vmax=0.001,
-        cmap="hot",
-        colorbar=False,
-    )
+        vmax=vmax,
+        cmap=cmap,
+        colorbar=colorbar
+        )
 
     plt.show()
 
@@ -201,20 +205,23 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname):
 
 if __name__ == "__main__":
     dstdir='/home/ajoshi/Desktop/rod_tbi/nonparametric_degree_results'
-    srcdir='/deneb_disk'
-    parser = argparse.ArgumentParser(
-                    prog='main_fmri_diff_inj_vs_sham_degree_nonparametric.py',
-                    description='comparison of subjects in rodent fMRI study using nonparametric tests and brain sync')
+    srcdir='/deneb_disk/ucla_mouse_injury'
+    parser = argparse.ArgumentParser(description='comparison of subjects in rodent fMRI study using nonparametric tests and node degree')
     parser.add_argument('--srcdir','-s', default=srcdir, help='source directory for data')
     parser.add_argument('--dstdir','-d', default=dstdir, help='output directory')
+    parser.add_argument('--colorbar','-cb', action="store_true", help="include colorbar")
+    parser.add_argument('--annotate','-a', action="store_true", help="annotate plots")
+    parser.add_argument('--cmap','-c', default='hot', help='colormap')
+    parser.add_argument('--vmax','-m', default=20, help='max range for variance maps', type=float)
+    
     args = parser.parse_args()
     dstdir=os.path.realpath(args.dstdir)
     srcdir=os.path.realpath(args.srcdir)
     os.makedirs(dstdir, exist_ok=True)
-    dir_7d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
-    dir_28d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
-    atlas_labels = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
-    atlas_image = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/brain.nii.gz'
+    dir_7d = f'{srcdir}/ucla_injury_rats/shm_07d/'
+    dir_28d = f'{srcdir}/ucla_injury_rats/shm_28d/'
+    atlas_labels = f'{srcdir}/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
+    atlas_image = f'{srcdir}/ucla_injury_rats/brain.nii.gz'
     ##
     fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d
@@ -222,8 +229,8 @@ if __name__ == "__main__":
     np.savez(f"{dstdir}/shm_nonparametric.npz", fmri_tdiff_shm_all=fmri_tdiff_shm_all)
 
 
-    dir_7d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
-    dir_28d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
+    dir_7d = f'{srcdir}/ucla_injury_rats/inj_07d/'
+    dir_28d = f'{srcdir}/ucla_injury_rats/inj_28d/'
 
 
     fmri_tdiff_inj_all, fmri_inj_7d_all, fmri_inj_28d_all = get_fmri_diff_tpts(
@@ -267,6 +274,7 @@ if __name__ == "__main__":
         pval,
         out_fname=f"{dstdir}/pval_7d_28d_nonparametric",
         alpha=0.25,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
     plot_atlas_pval(
         atlas_image,
@@ -275,6 +283,7 @@ if __name__ == "__main__":
         pval2,
         out_fname=f"{dstdir}/pval2_7d_28d_nonparametric",
         alpha=0.25,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
     plot_atlas_pval(
         atlas_image,
@@ -283,6 +292,7 @@ if __name__ == "__main__":
         pval_opp,
         out_fname=f"{dstdir}/pval_opp_7d_28d_nonparametric",
         alpha=0.25,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
 
     ##
@@ -297,6 +307,8 @@ if __name__ == "__main__":
         np.arange(1, num_rois + 1),
         var_7d_shm,
         out_fname=f"{dstdir}/var_7d_shm_nonparametric",
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar,
+        vmax=args.vmax
     )
 
     dist2atlas_7d_shm = np.sum(
@@ -315,6 +327,8 @@ if __name__ == "__main__":
         np.arange(1, num_rois + 1),
         var_28d_shm,
         out_fname=f"{dstdir}/var_28d_shm_nonparametric",
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar,
+        vmax=args.vmax
     )
 
 
@@ -337,6 +351,8 @@ if __name__ == "__main__":
         np.arange(1, num_rois + 1),
         var_7d_inj,
         out_fname=f"{dstdir}/var_7d_inj_nonparametric",
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar,
+        vmax=args.vmax
     )
     # Calculate variance of 28d inj
     fmri_atlas = np.mean(fmri_inj_28d_all, axis=2)
@@ -350,6 +366,8 @@ if __name__ == "__main__":
         np.arange(1, num_rois + 1),
         var_28d_inj,
         out_fname=f"{dstdir}/var_28d_inj_nonparametric",
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar,
+        vmax=args.vmax
     )   
     
     
@@ -371,7 +389,9 @@ if __name__ == "__main__":
         np.arange(1, num_rois + 1),
         var_28d_shm,
         out_fname=f"{dstdir}/var_28d_shm_7d_shm_nonparametric",
-    )
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar,
+        vmax=args.vmax
+)
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
     dist2atlas_7d_inj = np.sum(
@@ -386,6 +406,8 @@ if __name__ == "__main__":
         np.arange(1, num_rois + 1),
         var_7d_inj,
         out_fname=f"{dstdir}/var_7d_inj_7d_shm_nonparametric",
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar,
+        vmax=args.vmax
     )
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
@@ -402,6 +424,8 @@ if __name__ == "__main__":
         np.arange(1, num_rois + 1),
         var_28d_inj,
         out_fname=f"{dstdir}/var_28d_inj_7d_shm_nonparametric",
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar,
+        vmax=args.vmax
     )
 
     ##
@@ -437,6 +461,7 @@ if __name__ == "__main__":
         pval,
         out_fname=f"{dstdir}/rois_affected_nonparametric",
         alpha=0.05,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
     plot_atlas_pval(
         atlas_image,
@@ -445,6 +470,7 @@ if __name__ == "__main__":
         pval2,
         out_fname=f"{dstdir}/rois_get_better_nonparametric",
         alpha=0.05,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
     plot_atlas_pval(
         atlas_image,
@@ -453,6 +479,7 @@ if __name__ == "__main__":
         pval3,
         out_fname=f"{dstdir}/rois_get_worse_nonparametric",
         alpha=0.05,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
 
 
@@ -472,21 +499,22 @@ if __name__ == "__main__":
     effect_size1 = np.zeros(num_rois)
     effect_size2 = np.zeros(num_rois)
     effect_size3 = np.zeros(num_rois)
-    tt_power = np.zeros(num_rois)
+    np_power = np.zeros(num_rois)
 
     for r in tqdm(range(num_rois)):
         effect_size1[r] = cliffs_delta(dist2atlas_7d_inj[r,], dist2atlas_7d_shm[r,])
         effect_size2[r] = wilcoxon_effect_size(dist2atlas_7d_inj[r,], dist2atlas_28d_inj[r,])
         effect_size3[r] = wilcoxon_effect_size(dist2atlas_28d_inj[r,], dist2atlas_7d_inj[r,])
-        tt_power[r] = nonparametric_power_ind(dist2atlas_7d_inj[r,], dist2atlas_7d_shm[r,])
+        np_power[r] = nonparametric_power_ind(dist2atlas_7d_inj[r,], dist2atlas_7d_shm[r,])
 
     plot_atlas_pval(
         atlas_image,
         atlas_labels,
         np.arange(1, num_rois + 1),
-        (1 - tt_power),
-        out_fname=f"{dstdir}/rois_affected_tt_power_nonparametric",
+        (1 - np_power),
+        out_fname=f"{dstdir}/rois_affected_np_power_nonparametric",
         alpha=1,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
     plot_atlas_pval(
         atlas_image,
@@ -495,6 +523,7 @@ if __name__ == "__main__":
         (2 - np.abs(effect_size1)) / 2,
         out_fname=f"{dstdir}/rois_affected_effect_size_nonparametric",
         alpha=1,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
     plot_atlas_pval(
         atlas_image,
@@ -503,6 +532,7 @@ if __name__ == "__main__":
         (2 - effect_size2) / 2,
         out_fname=f"{dstdir}/rois_get_better_effect_size_nonparametric",
         alpha=1,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
     plot_atlas_pval(
         atlas_image,
@@ -511,6 +541,7 @@ if __name__ == "__main__":
         (2 - effect_size3) / 2,
         out_fname=f"{dstdir}/rois_get_worse_effect_size_nonparametric",
         alpha=1,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
 
-    input("press any key")
+    # input("press any key")

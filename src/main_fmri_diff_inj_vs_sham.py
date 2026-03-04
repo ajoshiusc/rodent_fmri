@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from tqdm import tqdm
 from glob import glob
 import nilearn.image as ni
@@ -124,7 +124,8 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
 
 
 
-def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0.05):
+def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0.05,
+                    cmap='hot',annotate=False,colorbar=False):
 
     atlas = ni.load_img(atlas_labels)
     atlas_img = atlas.get_fdata()
@@ -150,11 +151,11 @@ def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0
         threshold=0.0,
         output_file=out_fname + "_w_brainsync.png",
         draw_cross=False,
-        annotate=False,
+        annotate=annotate,
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
-        cmap="hot",
-        colorbar=False,
+        cmap=cmap,
+        colorbar=colorbar
         #vmin=0,
     )
 
@@ -162,7 +163,8 @@ def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0
 
 
 
-def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname):
+def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
+                   vmax, cmap='hot',annotate=False,colorbar=False):
     """Plot variance computed for each roi"""
 
     atlas = ni.load_img(atlas_labels)
@@ -188,13 +190,13 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname):
         threshold=0.0,
         output_file=out_fname + "_w_brainsync.png",
         draw_cross=False,
-        annotate=False,
+        annotate=annotate,
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
-        vmax=0.001,
         vmin=0,
-        colorbar=False,
-        cmap="hot",
+        vmax=vmax,
+        colorbar=colorbar,
+        cmap=cmap,
     )
 
     plt.show()
@@ -210,24 +212,26 @@ def fmri_sync(fmri, Os):
 
 
 if __name__ == "__main__":
-    global dstdir
     dstdir='/home/ajoshi/Desktop/rod_tbi/brainsync_results'
-    srcdir='/deneb_disk'
-    parser = argparse.ArgumentParser(
-                    prog='main_fmri_diff_inj_vs_sham.py',
-                    description='comparison of subjects in rodent fMRI study')
+    srcdir='/deneb_disk/ucla_mouse_injury'
+    parser = argparse.ArgumentParser(description='comparison of subjects in rodent fMRI study')
     parser.add_argument('--srcdir','-s', default=srcdir, help='source directory for data')
     parser.add_argument('--dstdir','-d', default=dstdir, help='output directory')
+    parser.add_argument('--colorbar','-cb', action="store_true", help="include colorbar")
+    parser.add_argument('--annotate','-a', action="store_true", help="annotate plots")
+    parser.add_argument('--cmap','-c', default='hot', help='colormap')
+    parser.add_argument('--vmax','-m', default=0.001, help='max range for variance maps', type=float)
+
     args = parser.parse_args()
     dstdir=os.path.realpath(args.dstdir)
     srcdir=os.path.realpath(args.srcdir)
     os.makedirs(dstdir, exist_ok=True)
-    dir_7d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/shm_07d/'
-    dir_28d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/shm_28d/'
+    dir_7d = f'{srcdir}/ucla_injury_rats/shm_07d/'
+    dir_28d = f'{srcdir}/ucla_injury_rats/shm_28d/'
     # dir with synced nifti files for shm group
     dir_28d_synced = f'{dstdir}/shm_28d_synced/'
-    atlas_labels = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
-    atlas_image = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/brain.nii.gz'
+    atlas_labels = f'{srcdir}/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
+    atlas_image = f'{srcdir}/ucla_injury_rats/brain.nii.gz'
 ##  
     fmri_tdiff_shm_all, fmri_shm_28d_synced_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d)
@@ -235,8 +239,8 @@ if __name__ == "__main__":
     # saved as time x roi x subject
     spio.savemat(f'{dstdir}/shm_synced_28d_to_7d.mat', {'fmri_shm_28d_synced_all':fmri_shm_28d_synced_all})
 
-    dir_7d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/inj_07d/'
-    dir_28d = f'{srcdir}/ucla_mouse_injury/ucla_injury_rats/inj_28d/'
+    dir_7d = f'{srcdir}/ucla_injury_rats/inj_07d/'
+    dir_28d = f'{srcdir}/ucla_injury_rats/inj_28d/'
     # dir with synced nifti files for inj group
     dir_28d_synced = f'{dstdir}/inj_28d_synced/'
 
@@ -269,11 +273,14 @@ if __name__ == "__main__":
     print(np.stack((pval_fdr, pval2_fdr, pval_opp_fdr)).T)
 ##
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval_fdr, out_fname=f'{dstdir}/pval_7d_28d', alpha=0.05)
+                    pval_fdr, out_fname=f'{dstdir}/pval_7d_28d', alpha=0.05,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval2_fdr, out_fname=f'{dstdir}/pval2_7d_28d', alpha=0.05)
+                    pval2_fdr, out_fname=f'{dstdir}/pval2_7d_28d', alpha=0.05,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval_opp_fdr, out_fname=f'{dstdir}/pval_opp_7d_28d', alpha=0.05)
+                    pval_opp_fdr, out_fname=f'{dstdir}/pval_opp_7d_28d', alpha=0.05,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
 
 ##
     # Calculate variance of 7d sham
@@ -286,7 +293,8 @@ if __name__ == "__main__":
     var_7d_shm = np.mean(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                   var_7d_shm, out_fname=f'{dstdir}/var_7d_shm')#, vmax=0.0006, vmin=0.0004)
+                   var_7d_shm, out_fname=f'{dstdir}/var_7d_shm',
+                   vmax=args.vmax, cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)#, vmax=0.0006, vmin=0.0004)
     dist2atlas_7d_shm = np.sum(
         (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0))
 ##
@@ -300,7 +308,8 @@ if __name__ == "__main__":
     var_28d_shm = np.mean(
         (fmri_shm_28d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                   var_28d_shm, out_fname=f'{dstdir}/var_28d_shm')#, vmax=0.0006, vmin=0.0004)
+                   var_28d_shm, out_fname=f'{dstdir}/var_28d_shm',
+                   vmax=args.vmax, cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)#, vmax=0.0006, vmin=0.0004)
 
 ##
     # Calculate variance of 7d inj
@@ -313,7 +322,8 @@ if __name__ == "__main__":
     var_7d_inj = np.mean(
         (fmri_inj_7d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                   var_7d_inj, out_fname=f'{dstdir}/var_7d_inj')#, vmax=0.0006, vmin=0.0004)
+                   var_7d_inj, out_fname=f'{dstdir}/var_7d_inj',
+                   vmax=args.vmax, cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)#, vmax=0.0006, vmin=0.0004)
 
     # Calculate variance of 28d inj
     a, Os, Costdif, TotalError = groupBrainSync(fmri_inj_28d_all)
@@ -325,7 +335,8 @@ if __name__ == "__main__":
     var_28d_inj = np.mean(
         (fmri_inj_28d_all_synced - fmri_atlas[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                   var_28d_inj, out_fname=f'{dstdir}/var_28d_inj')#, vmax=0.0006, vmin=0.0004)
+                   var_28d_inj, out_fname=f'{dstdir}/var_28d_inj',
+                   vmax=args.vmax, cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)#, vmax=0.0006, vmin=0.0004)
 
     # Calculate variance of 28d shm wrt 7d shm grp atlas
     num_sub = fmri_shm_28d_all.shape[2]
@@ -342,7 +353,8 @@ if __name__ == "__main__":
     var_28d_shm = np.mean(
         (fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                   var_28d_shm, out_fname=f'{dstdir}/var_28d_shm_7d_shm')#, vmax=0.0006, vmin=0.0004)
+                   var_28d_shm, out_fname=f'{dstdir}/var_28d_shm_7d_shm',
+                   vmax=args.vmax, cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)#, vmax=0.0006, vmin=0.0004)
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_7d_all.shape[2]
@@ -359,7 +371,8 @@ if __name__ == "__main__":
     var_7d_inj = np.mean(
         (fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                   var_7d_inj, out_fname=f'{dstdir}/var_7d_inj_7d_shm')#, vmax=0.0006, vmin=0.0004)
+                   var_7d_inj, out_fname=f'{dstdir}/var_7d_inj_7d_shm',
+                   vmax=args.vmax, cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)#, vmax=0.0006, vmin=0.0004)
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_28d_all.shape[2]
@@ -376,7 +389,8 @@ if __name__ == "__main__":
     var_28d_inj = np.mean(
         (fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis])**2, axis=(0, 2))
     plot_atlas_var(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                   var_28d_inj, out_fname=f'{dstdir}/var_28d_inj_7d_shm')#, vmax=0.0006, vmin=0.0004)
+                   var_28d_inj, out_fname=f'{dstdir}/var_28d_inj_7d_shm',
+                   vmax=args.vmax, cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)#, vmax=0.0006, vmin=0.0004)
 
 
 ##
@@ -404,11 +418,14 @@ if __name__ == "__main__":
     _, pval3_fdr = fdrcorrection(pval3, alpha=0.05)
 
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval_fdr, out_fname=f'{dstdir}/rois_affected', alpha=0.05)
+                    pval_fdr, out_fname=f'{dstdir}/rois_affected', alpha=0.05,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval2_fdr, out_fname=f'{dstdir}/rois_get_better', alpha=0.05)
+                    pval2_fdr, out_fname=f'{dstdir}/rois_get_better', alpha=0.05,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    pval3_fdr, out_fname=f'{dstdir}/rois_get_worse', alpha=0.05)
+                    pval3_fdr, out_fname=f'{dstdir}/rois_get_worse', alpha=0.05,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
 
     # Write the p values to csv file
     fieldnames = ["ROI ID", "pval_affected",
@@ -440,12 +457,16 @@ if __name__ == "__main__":
     # Please Note that colorbars should go from 0 to 2 in your figure, 
     # but due to limitation of the nilearn functions, the data is scaled by a factor of 2
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    (1-tt_power), out_fname=f'{dstdir}/rois_affected_tt_power', alpha=1)
+                    (1-tt_power), out_fname=f'{dstdir}/rois_affected_tt_power', alpha=1,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    (2-np.abs(cohen_d1))/2, out_fname=f'{dstdir}/rois_affected_cohen_d', alpha=1)
+                    (2-np.abs(cohen_d1))/2, out_fname=f'{dstdir}/rois_affected_cohen_d', alpha=1,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    (2-cohen_d2)/2, out_fname=f'{dstdir}/rois_get_better_cohen_d', alpha=1)
+                    (2-cohen_d2)/2, out_fname=f'{dstdir}/rois_get_better_cohen_d', alpha=1,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
     plot_atlas_pval(atlas_image, atlas_labels, np.arange(1, num_rois+1),
-                    (2-cohen_d3)/2, out_fname=f'{dstdir}/rois_get_worse_cohen_d', alpha=1)
+                    (2-cohen_d3)/2, out_fname=f'{dstdir}/rois_get_worse_cohen_d', alpha=1,
+                    cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar)
 
     # input('press any key')
