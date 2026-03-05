@@ -16,12 +16,9 @@ import nilearn.image as ni
 from glob import glob
 from tqdm import tqdm
 
-
-
 # from surfproc import patch_color_attrib, smooth_surf_function
 
 # from dfsio import readdfs, writedfs
-
 
 # correct if the population S.D. is expected to be equal for the two groups.
 def cliffs_delta(x, y):
@@ -54,7 +51,6 @@ def nonparametric_power_ind(x, y, alpha=0.05, n_sim=1000):
             pass
     return sig_count / n_sim
 
-
 def get_roiwise_fmri(fmri, labels, label_ids):
 
     labels = ni.load_img(labels).get_fdata()
@@ -69,7 +65,6 @@ def get_roiwise_fmri(fmri, labels, label_ids):
     rtseries_norm, _, _ = normalizeData(rtseries)
 
     return rtseries_norm, rtseries
-
 
 def get_fmri_diff_tpts(dir_7d, dir_28d):
     flist = glob(dir_7d + "/at*.nii.gz")
@@ -124,7 +119,6 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
 
     return fmri_tdiff_all, fmri_roiwise_7d_all, fmri_roiwise_28d_all
 
-
 def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0.05,
                     cmap='hot',annotate=False,colorbar=False):
 
@@ -160,7 +154,6 @@ def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0
     )
 
     plt.show()
-
 
 def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
                     cmap='hot',annotate=False,colorbar=False, vmax=20):
@@ -199,10 +192,6 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
 
     plt.show()
 
-
-
-
-
 if __name__ == "__main__":
     dstdir='/home/ajoshi/Desktop/rod_tbi/nonparametric_degree_results'
     srcdir='/deneb_disk/ucla_mouse_injury'
@@ -228,10 +217,8 @@ if __name__ == "__main__":
     )
     np.savez(f"{dstdir}/shm_nonparametric.npz", fmri_tdiff_shm_all=fmri_tdiff_shm_all)
 
-
     dir_7d = f'{srcdir}/ucla_injury_rats/inj_07d/'
     dir_28d = f'{srcdir}/ucla_injury_rats/inj_28d/'
-
 
     fmri_tdiff_inj_all, fmri_inj_7d_all, fmri_inj_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d
@@ -330,7 +317,6 @@ if __name__ == "__main__":
         cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar,
         vmax=args.vmax
     )
-
 
     #plot_atlas_var(
     #    atlas_fname, np.arange(1, num_rois + 1), var_28d_shm, out_fname=f"{dstdir}/var_28d_shm_nonparametric"
@@ -481,7 +467,6 @@ if __name__ == "__main__":
         alpha=0.05,
         cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
-
 
     # Write the p values to csv file
     fieldnames = ["ROI ID", "pval_affected",

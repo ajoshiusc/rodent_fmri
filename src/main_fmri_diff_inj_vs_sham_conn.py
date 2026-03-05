@@ -15,11 +15,9 @@ from glob import glob
 from tqdm import tqdm
 from statsmodels.stats.power import TTestIndPower
 
-
 # from surfproc import patch_color_attrib, smooth_surf_function
 
 # from dfsio import readdfs, writedfs
-
 
 # correct if the population S.D. is expected to be equal for the two groups.
 def cohen_d(x, y):
@@ -29,7 +27,6 @@ def cohen_d(x, y):
     return (np.mean(x) - np.mean(y)) / np.sqrt(
         ((nx - 1) * np.std(x, ddof=1) ** 2 + (ny - 1) * np.std(y, ddof=1) ** 2) / dof
     )
-
 
 def get_roiwise_fmri(fmri, labels, label_ids):
 
@@ -45,7 +42,6 @@ def get_roiwise_fmri(fmri, labels, label_ids):
     rtseries_norm, _, _ = normalizeData(rtseries)
 
     return rtseries_norm, rtseries
-
 
 def get_fmri_diff_tpts(dir_7d, dir_28d):
     flist = glob(dir_7d + "/at*.nii.gz")
@@ -100,7 +96,6 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
 
     return fmri_tdiff_all, fmri_roiwise_7d_all, fmri_roiwise_28d_all
 
-
 def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0.05,
                     cmap='hot',annotate=False,colorbar=False):
 
@@ -137,7 +132,6 @@ def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0
     )
 
     plt.show()
-
 
 def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
                     cmap='hot',annotate=False,colorbar=False, vmax=0.05):
@@ -176,7 +170,6 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
         )
 
     plt.show()
-
 
 if __name__ == "__main__":
     dstdir='/home/ajoshi/Desktop/rod_tbi/conn_results'
@@ -275,10 +268,10 @@ if __name__ == "__main__":
 
     ##
     # Calculate variance of 7d sham
-    fmri_shm_7d_all_synced = fmri_shm_7d_all
-    fmri_atlas_7d_shm = np.mean(fmri_shm_7d_all_synced, axis=2)
+    
+    fmri_atlas_7d_shm = np.mean(fmri_shm_7d_all, axis=2)
     var_7d_shm = np.mean(
-        (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0, 2)
+        (fmri_shm_7d_all - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0, 2)
     )
     plot_atlas_var(
         atlas_image,
@@ -290,17 +283,15 @@ if __name__ == "__main__":
         vmax=args.vmax
     )
     dist2atlas_7d_shm = np.sum(
-        (fmri_shm_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
+        (fmri_shm_7d_all - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
     )
-
-
 
     ##
     # Calculate variance of 28d sham
-    fmri_shm_28d_all_synced = fmri_shm_28d_all
-    fmri_atlas = np.mean(fmri_shm_28d_all_synced, axis=2)
+    
+    fmri_atlas = np.mean(fmri_shm_28d_all, axis=2)
     var_28d_shm = np.mean(
-        (fmri_shm_28d_all_synced - fmri_atlas[:, :, np.newaxis]) ** 2, axis=(0, 2)
+        (fmri_shm_28d_all - fmri_atlas[:, :, np.newaxis]) ** 2, axis=(0, 2)
     )
 
     plot_atlas_var(
@@ -315,10 +306,10 @@ if __name__ == "__main__":
 
     ##
     # Calculate variance of 7d inj
-    fmri_inj_7d_all_synced = fmri_inj_7d_all
-    fmri_atlas = np.mean(fmri_inj_7d_all_synced, axis=2)
+    
+    fmri_atlas = np.mean(fmri_inj_7d_all, axis=2)
     var_7d_inj = np.mean(
-        (fmri_inj_7d_all_synced - fmri_atlas[:, :, np.newaxis]) ** 2, axis=(0, 2)
+        (fmri_inj_7d_all - fmri_atlas[:, :, np.newaxis]) ** 2, axis=(0, 2)
     )
 
     plot_atlas_var(
@@ -332,10 +323,10 @@ if __name__ == "__main__":
     )
 
     # Calculate variance of 28d inj
-    fmri_inj_28d_all_synced = fmri_inj_28d_all
-    fmri_atlas = np.mean(fmri_inj_28d_all_synced, axis=2)
+    
+    fmri_atlas = np.mean(fmri_inj_28d_all, axis=2)
     var_28d_inj = np.mean(
-        (fmri_inj_28d_all_synced - fmri_atlas[:, :, np.newaxis]) ** 2, axis=(0, 2)
+        (fmri_inj_28d_all - fmri_atlas[:, :, np.newaxis]) ** 2, axis=(0, 2)
     )
 
     plot_atlas_var(
@@ -350,13 +341,13 @@ if __name__ == "__main__":
 
     # Calculate variance of 28d shm wrt 7d shm grp atlas
     num_sub = fmri_shm_28d_all.shape[2]
-    fmri_shm_28d_all_synced = fmri_shm_28d_all
+    
 
     dist2atlas_28d_shm = np.sum(
-        (fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
+        (fmri_shm_28d_all - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
     )
     var_28d_shm = np.mean(
-        (fmri_shm_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2,
+        (fmri_shm_28d_all - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2,
         axis=(0, 2),
     )
     plot_atlas_var(
@@ -371,13 +362,13 @@ if __name__ == "__main__":
 
     # Calculate variance of 7d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_7d_all.shape[2]
-    fmri_inj_7d_all_synced = fmri_inj_7d_all
+    
 
     dist2atlas_7d_inj = np.sum(
-        (fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
+        (fmri_inj_7d_all - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
     )
     var_7d_inj = np.mean(
-        (fmri_inj_7d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0, 2)
+        (fmri_inj_7d_all - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0, 2)
     )
     plot_atlas_var(
         atlas_image,
@@ -391,13 +382,13 @@ if __name__ == "__main__":
 
     # Calculate variance of 28d inj wrt 7d shm grp atlas
     num_sub = fmri_inj_28d_all.shape[2]
-    fmri_inj_28d_all_synced = fmri_inj_28d_all
+    
 
     dist2atlas_28d_inj = np.sum(
-        (fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
+        (fmri_inj_28d_all - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
     )
     var_28d_inj = np.mean(
-        (fmri_inj_28d_all_synced - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2,
+        (fmri_inj_28d_all - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2,
         axis=(0, 2),
     )
     plot_atlas_var(
