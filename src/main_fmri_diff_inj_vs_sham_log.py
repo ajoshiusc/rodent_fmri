@@ -117,8 +117,8 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
 
         fmri_roiwise_28d_synced_all[:, :, i] = d
 
-        fmri_tdiff_all[:, i] = np.linalg.norm(
-            fmri_roiwise_7d_all[:, :, i] - d, axis=0)
+        fmri_tdiff_all[:, i] = np.log(np.linalg.norm(
+            fmri_roiwise_7d_all[:, :, i] - d, axis=0))
 
     return fmri_tdiff_all, fmri_roiwise_28d_synced_all, fmri_roiwise_7d_all, fmri_roiwise_28d_all
 
@@ -212,7 +212,7 @@ def fmri_sync(fmri, Os):
 
 
 if __name__ == "__main__":
-    dstdir='/home/ajoshi/Desktop/rod_tbi/brainsync_results'
+    dstdir='/home/ajoshi/Desktop/rod_tbi/brainsync_log_results'
     srcdir='/deneb_disk/ucla_mouse_injury'
     parser = argparse.ArgumentParser(description='comparison of subjects in rodent fMRI study')
     parser.add_argument('--srcdir','-s', default=srcdir, help='source directory for data')

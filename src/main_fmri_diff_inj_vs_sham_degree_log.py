@@ -90,9 +90,9 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
         data, _ = get_roiwise_fmri(fmri_28d, labels_28d, label_ids)
         fmri_roiwise_28d_all[:, :, i] = np.sum(np.matmul((data.T), data), axis=0)
 
-        fmri_tdiff_all[:, i] = np.linalg.norm(
+        fmri_tdiff_all[:, i] = np.log(np.linalg.norm(
             fmri_roiwise_7d_all[:, :, i] - fmri_roiwise_28d_all[:, :, i], axis=0
-        )
+        ))
 
     return fmri_tdiff_all, fmri_roiwise_7d_all, fmri_roiwise_28d_all
 
@@ -170,7 +170,7 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
     plt.show()
 
 if __name__ == "__main__":
-    dstdir='/home/ajoshi/Desktop/rod_tbi/degree_results'
+    dstdir='/home/ajoshi/Desktop/rod_tbi/degree_log_results'
     srcdir='/deneb_disk/ucla_mouse_injury'
     parser = argparse.ArgumentParser(description='comparison of subjects in rodent fMRI study using parametric tests and node degree')
     parser.add_argument('--srcdir','-s', default=srcdir, help='source directory for data')

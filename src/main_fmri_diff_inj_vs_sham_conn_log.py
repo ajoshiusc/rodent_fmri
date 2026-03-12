@@ -85,14 +85,14 @@ def get_fmri_diff_tpts(dir_7d, dir_28d):
         labels_28d = os.path.join(dir_28d, "atlas_" + sub_28d + ".nii.gz")
 
         data, _ = get_roiwise_fmri(fmri_7d, labels_7d, label_ids)
-        fmri_roiwise_7d_all[:, :, i] = np.sum(np.matmul((data.T), data), axis=0)
+        fmri_roiwise_7d_all[:, :, i] = np.matmul((data.T), data)
 
         data, _ = get_roiwise_fmri(fmri_28d, labels_28d, label_ids)
-        fmri_roiwise_28d_all[:, :, i] = np.sum(np.matmul((data.T), data), axis=0)
+        fmri_roiwise_28d_all[:, :, i] = np.matmul((data.T), data)
 
-        fmri_tdiff_all[:, i] = np.linalg.norm(
+        fmri_tdiff_all[:, i] = np.log(np.linalg.norm(
             fmri_roiwise_7d_all[:, :, i] - fmri_roiwise_28d_all[:, :, i], axis=0
-        )
+        ))
 
     return fmri_tdiff_all, fmri_roiwise_7d_all, fmri_roiwise_28d_all
 
@@ -109,7 +109,7 @@ def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0
 
     pval_vol = ni.new_img_like(atlas, img)
 
-    pval_vol.to_filename(out_fname + "_deg.nii.gz")
+    pval_vol.to_filename(out_fname + "_conn.nii.gz")
 
     img[img > alpha] = alpha
     pval_vol = ni.new_img_like(atlas, alpha - img)
@@ -121,19 +121,20 @@ def plot_atlas_pval(atlas_image, atlas_labels, roi_ids, pval, out_fname, alpha=0
         stat_map_img=pval_vol,
         vmax=alpha,
         threshold=0.0,
-        output_file=out_fname + "_w_deg.png",
+        output_file=out_fname + "_w_conn.png",
         draw_cross=False,
         annotate=annotate,
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
         cmap=cmap,
         colorbar=colorbar,
+        #vmin=0,
     )
 
     plt.show()
 
 def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
-                    cmap='hot',annotate=False,colorbar=False, vmax=20):
+                    cmap='hot',annotate=False,colorbar=False, vmax=0.05):
     """Plot variance computed for each roi"""
 
     atlas = ni.load_img(atlas_labels)
@@ -146,7 +147,7 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
 
     val_vol = ni.new_img_like(atlas, img)
 
-    val_vol.to_filename(out_fname + "_deg.nii.gz")
+    val_vol.to_filename(out_fname + "_conn.nii.gz")
     val_vol = ni.new_img_like(atlas, img)
 
     # plot var
@@ -157,12 +158,13 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
         bg_img=atlas_image,
         stat_map_img=val_vol,
         threshold=0.0,
-        output_file=out_fname + "_w_deg.png",
+        output_file=out_fname + "_w_conn.png",
         draw_cross=False,
         annotate=annotate,
         display_mode="y",
         cut_coords=[(111 - 90) * 1.25],
         vmax=vmax,
+        vmin=0,
         cmap=cmap,
         colorbar=colorbar
         )
@@ -170,16 +172,16 @@ def plot_atlas_var(atlas_image, atlas_labels, roi_ids, roi_var, out_fname,
     plt.show()
 
 if __name__ == "__main__":
-    dstdir='/home/ajoshi/Desktop/rod_tbi/degree_results'
+    dstdir='/home/ajoshi/Desktop/rod_tbi/conn_log_results'
     srcdir='/deneb_disk/ucla_mouse_injury'
-    parser = argparse.ArgumentParser(description='comparison of subjects in rodent fMRI study using parametric tests and node degree')
+    parser = argparse.ArgumentParser(description='comparison of subjects in rodent fMRI study using parametric tests')
     parser.add_argument('--srcdir','-s', default=srcdir, help='source directory for data')
     parser.add_argument('--dstdir','-d', default=dstdir, help='output directory')
     parser.add_argument('--colorbar','-cb', action="store_true", help="include colorbar")
     parser.add_argument('--annotate','-a', action="store_true", help="annotate plots")
     parser.add_argument('--cmap','-c', default='hot', help='colormap')
-    parser.add_argument('--vmax','-m', default=20, help='max range for variance maps', type=float)
-    
+    parser.add_argument('--vmax','-m', default=0.05, help='max range for variance maps', type=float)
+
     args = parser.parse_args()
     dstdir=os.path.realpath(args.dstdir)
     srcdir=os.path.realpath(args.srcdir)
@@ -188,6 +190,7 @@ if __name__ == "__main__":
     dir_28d = f'{srcdir}/ucla_injury_rats/shm_28d/'
     atlas_labels = f'{srcdir}/ucla_injury_rats/01_study_specific_atlas_relabel.nii.gz'
     atlas_image = f'{srcdir}/ucla_injury_rats/brain.nii.gz'
+
     ##
     fmri_tdiff_shm_all, fmri_shm_7d_all, fmri_shm_28d_all = get_fmri_diff_tpts(
         dir_7d, dir_28d
@@ -236,6 +239,7 @@ if __name__ == "__main__":
 
     np.savez(f"{dstdir}/pval.npz", pval2=pval2, pval=pval, pval_opp=pval_opp)
     print(np.stack((pval, pval2, pval_opp)).T)
+    ##
     ##
     plot_atlas_pval(
         atlas_image,
@@ -362,10 +366,10 @@ if __name__ == "__main__":
         cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar,
         vmax=args.vmax
     )
-
     dist2atlas_7d_shm = np.sum(
         (fmri_shm_7d_all - fmri_atlas_7d_shm[:, :, np.newaxis]) ** 2, axis=(0)
     )
+
     ##
     # Calculate variance of 28d sham
     
@@ -384,10 +388,6 @@ if __name__ == "__main__":
         vmax=args.vmax
     )
 
-    #plot_atlas_var(
-    #    atlas_fname, np.arange(1, num_rois + 1), var_28d_shm, out_fname="var_28d_shm"
-    #)
-
     ##
     # Calculate variance of 7d inj
     
@@ -395,9 +395,7 @@ if __name__ == "__main__":
     var_7d_inj = np.mean(
         (fmri_inj_7d_all - fmri_atlas[:, :, np.newaxis]) ** 2, axis=(0, 2)
     )
-    #plot_atlas_var(
-    #    atlas_fname, np.arange(1, num_rois + 1), var_7d_inj, out_fname=f"{dstdir}/var_7d_inj"
-    #)
+
     plot_atlas_var(
         atlas_image,
         atlas_labels,
@@ -407,13 +405,14 @@ if __name__ == "__main__":
         cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar,
         vmax=args.vmax
     )
+
     # Calculate variance of 28d inj
     
     fmri_atlas = np.mean(fmri_inj_28d_all, axis=2)
     var_28d_inj = np.mean(
         (fmri_inj_28d_all - fmri_atlas[:, :, np.newaxis]) ** 2, axis=(0, 2)
     )
-    
+
     plot_atlas_var(
         atlas_image,
         atlas_labels,
@@ -423,10 +422,6 @@ if __name__ == "__main__":
         cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar,
         vmax=args.vmax
     )
-    
-    #plot_atlas_var(
-    #    atlas_fname, np.arange(1, num_rois + 1), var_28d_inj, out_fname=f"{dstdir}/var_28d_inj"
-    #)
 
     # Calculate variance of 28d shm wrt 7d shm grp atlas
     num_sub = fmri_shm_28d_all.shape[2]
@@ -684,4 +679,4 @@ if __name__ == "__main__":
         cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
 
-    # input("press any key")
+  #  input("press any key")

@@ -247,8 +247,11 @@ if __name__ == "__main__":
             alternative="greater",
         )
 
+    pval_orig = np.copy(pval)
     _, pval = fdrcorrection(pval, alpha=0.05)
+    pval2_orig = np.copy(pval2)
     _, pval2 = fdrcorrection(pval2, alpha=0.05)
+    pval_opp_orig = np.copy(pval_opp)
     _, pval_opp = fdrcorrection(pval_opp, alpha=0.05)
 
     np.savez(f"{dstdir}/pval_nonparametric.npz", pval2=pval2, pval=pval, pval_opp=pval_opp)
@@ -267,6 +270,33 @@ if __name__ == "__main__":
         atlas_image,
         atlas_labels,
         np.arange(1, num_rois + 1),
+        pval_orig,
+        out_fname=f"{dstdir}/pval_7d_28d_nonparametric_uncorrected",
+        alpha=0.25,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval,
+        out_fname=f"{dstdir}/pval_7d_28d_nonparametric_unthresholded",
+        alpha=1.0,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval_orig,
+        out_fname=f"{dstdir}/pval_7d_28d_nonparametric_uncorrected_unthresholded",
+        alpha=1.0,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
         pval2,
         out_fname=f"{dstdir}/pval2_7d_28d_nonparametric",
         alpha=0.25,
@@ -276,9 +306,63 @@ if __name__ == "__main__":
         atlas_image,
         atlas_labels,
         np.arange(1, num_rois + 1),
+        pval2_orig,
+        out_fname=f"{dstdir}/pval2_7d_28d_nonparametric_uncorrected",
+        alpha=0.25,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval2,
+        out_fname=f"{dstdir}/pval2_7d_28d_nonparametric_unthresholded",
+        alpha=1.0,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval2_orig,
+        out_fname=f"{dstdir}/pval2_7d_28d_nonparametric_uncorrected_unthresholded",
+        alpha=1.0,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
         pval_opp,
         out_fname=f"{dstdir}/pval_opp_7d_28d_nonparametric",
         alpha=0.25,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval_opp_orig,
+        out_fname=f"{dstdir}/pval_opp_7d_28d_nonparametric_uncorrected",
+        alpha=0.25,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval_opp,
+        out_fname=f"{dstdir}/pval_opp_7d_28d_nonparametric_unthresholded",
+        alpha=1.0,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval_opp_orig,
+        out_fname=f"{dstdir}/pval_opp_7d_28d_nonparametric_uncorrected_unthresholded",
+        alpha=1.0,
         cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
 
@@ -436,8 +520,11 @@ if __name__ == "__main__":
             dist2atlas_7d_inj[r,], dist2atlas_28d_inj[r,], alternative="less"
         )
 
+    pval_orig = np.copy(pval)
     _, pval = fdrcorrection(pval, alpha=0.05)
+    pval2_orig = np.copy(pval2)
     _, pval2 = fdrcorrection(pval2, alpha=0.05)
+    pval3_orig = np.copy(pval3)
     _, pval3 = fdrcorrection(pval3, alpha=0.05)
 
     plot_atlas_pval(
@@ -453,6 +540,33 @@ if __name__ == "__main__":
         atlas_image,
         atlas_labels,
         np.arange(1, num_rois + 1),
+        pval_orig,
+        out_fname=f"{dstdir}/rois_affected_nonparametric_uncorrected",
+        alpha=0.05,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval,
+        out_fname=f"{dstdir}/rois_affected_nonparametric_unthresholded",
+        alpha=1.0,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval_orig,
+        out_fname=f"{dstdir}/rois_affected_nonparametric_uncorrected_unthresholded",
+        alpha=1.0,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
         pval2,
         out_fname=f"{dstdir}/rois_get_better_nonparametric",
         alpha=0.05,
@@ -462,9 +576,63 @@ if __name__ == "__main__":
         atlas_image,
         atlas_labels,
         np.arange(1, num_rois + 1),
+        pval2_orig,
+        out_fname=f"{dstdir}/rois_get_better_nonparametric_uncorrected",
+        alpha=0.05,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval2,
+        out_fname=f"{dstdir}/rois_get_better_nonparametric_unthresholded",
+        alpha=1.0,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval2_orig,
+        out_fname=f"{dstdir}/rois_get_better_nonparametric_uncorrected_unthresholded",
+        alpha=1.0,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
         pval3,
         out_fname=f"{dstdir}/rois_get_worse_nonparametric",
         alpha=0.05,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval3_orig,
+        out_fname=f"{dstdir}/rois_get_worse_nonparametric_uncorrected",
+        alpha=0.05,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval3,
+        out_fname=f"{dstdir}/rois_get_worse_nonparametric_unthresholded",
+        alpha=1.0,
+        cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
+    )
+    plot_atlas_pval(
+        atlas_image,
+        atlas_labels,
+        np.arange(1, num_rois + 1),
+        pval3_orig,
+        out_fname=f"{dstdir}/rois_get_worse_nonparametric_uncorrected_unthresholded",
+        alpha=1.0,
         cmap=args.cmap,annotate=args.annotate,colorbar=args.colorbar
     )
 
