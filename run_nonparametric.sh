@@ -1,7 +1,8 @@
 #!/bin/bash
 
-OD=${PWD}/ratTBI/v3/
-install -d ${OD}
+# Allow specifying output directory via command line, defaulting to ratTBI/v4/
+OD="${1:-${PWD}/ratTBI/v4/}"
+install -d "${OD}"
 
 source .venv/bin/activate
 
