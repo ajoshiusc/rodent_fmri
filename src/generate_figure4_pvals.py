@@ -6,6 +6,7 @@ import numpy as np
 import nilearn.image as ni
 from nilearn import plotting
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.family': 'sans-serif', 'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'], 'font.size': 14})
 
 def main():
     parser = argparse.ArgumentParser(description='Generate Figure 4: ROI-wise p-value maps')
@@ -72,7 +73,7 @@ def main():
     plt.suptitle("Functional alterations 7-day TBI vs Sham (FDR-corrected $p \\leq 0.05$)", fontsize=18, fontweight='bold', y=1.05)
     
     # Save formatting to avoid UserWarnings from nilearn and tight layout discrepancies
-    plt.savefig(args.out, dpi=300, bbox_inches='tight')
+    plt.savefig(args.out, dpi=600, bbox_inches='tight')
     print(f"Figure saved to {args.out}")
     plt.close()
 

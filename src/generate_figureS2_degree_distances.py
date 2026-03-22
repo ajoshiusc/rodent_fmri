@@ -1,6 +1,7 @@
 import os
 import argparse
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.family': 'sans-serif', 'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'], 'font.size': 14})
 from nilearn import plotting, image
 import numpy as np
 
@@ -72,9 +73,8 @@ def generate_figureS2(vdir, bg):
         )
         ax.set_title(title, fontsize=15, fontweight='bold', pad=15)
 
-    plt.tight_layout()
     out_file = "figureS2_degree_distances.png"
-    plt.savefig(out_file, dpi=300, bbox_inches='tight')
+    plt.savefig(out_file, dpi=600, bbox_inches='tight')
     print(f"Figure saved to {out_file}")
 
 if __name__ == "__main__":

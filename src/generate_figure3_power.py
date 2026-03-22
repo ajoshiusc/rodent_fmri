@@ -6,6 +6,7 @@ import numpy as np
 import nilearn.image as ni
 from nilearn import plotting
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.family': 'sans-serif', 'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'], 'font.size': 14})
 
 def main():
     parser = argparse.ArgumentParser(description='Generate Figure 3: Power Maps')
@@ -67,8 +68,7 @@ def main():
         ax.set_title(title, fontsize=16, fontweight='bold', pad=15)
 
     plt.suptitle("Statistical Power (Mann-Whitney U)", fontsize=18, fontweight='bold', y=1.05)
-    plt.tight_layout()
-    plt.savefig(args.out, dpi=300, bbox_inches='tight')
+    plt.savefig(args.out, dpi=600, bbox_inches='tight')
     print(f"Figure saved to {args.out}")
     plt.close()
 

@@ -5,6 +5,7 @@ import argparse
 import nilearn.image as ni
 from nilearn import plotting
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.family': 'sans-serif', 'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'], 'font.size': 14})
 
 def main():
     parser = argparse.ArgumentParser(description='Generate Figure S1: Connectivity Profile Variances / Distances to group atlas')
@@ -62,7 +63,7 @@ def main():
 
     plt.suptitle("Connectivity Profile: Average Functional Distances to Group Atlas", fontsize=18, fontweight='bold', y=1.05)
     
-    plt.savefig(args.out, dpi=300, bbox_inches='tight')
+    plt.savefig(args.out, dpi=600, bbox_inches='tight')
     print(f"Figure saved to {args.out}")
     plt.close()
 
