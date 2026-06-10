@@ -6,6 +6,7 @@ import numpy as np
 import nilearn.image as ni
 from nilearn import plotting
 import matplotlib.pyplot as plt
+plt.style.use('dark_background')
 plt.rcParams.update({'font.family': 'sans-serif', 'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'], 'font.size': 14})
 
 def main():
@@ -55,21 +56,30 @@ def main():
             bg_img=bg_img,
             axes=ax,
             draw_cross=False,
-            annotate=False,
+            annotate=True,
             display_mode="y",
             cut_coords=[(111 - 90) * 1.25],
             cmap=args.cmap,
             vmax=1.0,
-            colorbar=True,
-            title=title,
+            colorbar=False,
+            title=None,
             vmin=0.0
         )
         
-        ax.set_title(title, fontsize=16, fontweight='bold', pad=15)
+        ax.set_title(title, fontsize=16, fontweight='bold', pad=10)
 
-    plt.suptitle("Nonparametric Effect Sizes (Cliff's Delta $|\\delta|$): 7-day TBI vs Sham", fontsize=18, fontweight='bold', y=1.05)
+    # Add a common colorbar to the right
+    import matplotlib.cm as cm
+    import matplotlib.colors as mcolors
+    plt.subplots_adjust(top=0.75, right=0.9)
+    cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.6])
+    cmap = plt.get_cmap(args.cmap)
+    norm = mcolors.Normalize(vmin=0.0, vmax=1.0)
+    fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), cax=cbar_ax)
+
+    plt.suptitle("Nonparametric Effect Sizes (Cliff's Delta $|\\delta|$): 7-day TBI vs Sham", fontsize=18, fontweight='bold', y=0.98)
     
-    plt.savefig(args.out, dpi=600, bbox_inches='tight')
+    plt.savefig(args.out, dpi=600, bbox_inches='tight', facecolor='black')
     print(f"Figure saved to {args.out}")
     plt.close()
 
